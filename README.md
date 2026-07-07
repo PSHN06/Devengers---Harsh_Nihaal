@@ -13,7 +13,7 @@
 ---
 
 ## 💡 The Core Problem & Strategic Angle
-Navigating public administration in India is hindered by bureaucratic jargon, spelling mismatches in files, and a language barrier. For low-literacy or mobile-first citizens, reporting a basic issue is intimidating.
+Navigating public administration in India is hindered by bureaucratic jargon, spelling mismatches in files, and a language barrier. For low-literacy or mobile-first citizens, reporting a basic issue is intimidating...
 
 **JanVaani.ai** addresses this pain point with the **Voice-to-Action Hyper-Local Pipeline**. It allows users to speak naturally in their regional Indian dialect. JanVaani.ai automatically translates the statement, auto-detects the administrative department, generates a formal administrative-grade official draft in English, resolves coordinate geo-tags, and links the complaint to an interactive pipeline tracker.
 
