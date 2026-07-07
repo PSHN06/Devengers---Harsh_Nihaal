@@ -52,7 +52,7 @@ header {
   transition: background-color 0.3s ease;
 }
 
-aside, main, footer {
+aside, main, footer, .view-frame {
   transition: background-color 0.3s ease, color 0.3s ease;
 }
 
@@ -60,6 +60,8 @@ aside, main, footer {
 .glass-panel {
   background: var(--glass-bg) !important;
   border-color: var(--border-color) !important;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   transition: background 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
@@ -68,7 +70,15 @@ aside, main, footer {
   border-color: rgba(125, 211, 252, 0.4);
 }
 
-/* Active Navigation Indicators */
+/* Navigation Indicator tabs */
+.nav-view-tab {
+  transition: all 0.3s ease;
+}
+.nav-view-tab.active {
+  color: var(--primary-color) !important;
+}
+
+/* Active Navigation Indicators (Sidebar) */
 .active-nav-tab {
   background-color: var(--primary-glow) !important;
   color: var(--primary-color) !important;
@@ -172,7 +182,7 @@ html:not(.dark) .text-on-surface {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
-  z-index: 1100;
+  z-index: 9999;
 }
 
 .toast {
@@ -233,6 +243,14 @@ html:not(.dark) .text-on-surface {
 }
 
 /* OCR Scanner laser lines */
+.ocr-dropzone {
+  transition: all 0.3s ease;
+}
+.ocr-dropzone.dragover {
+  border-color: var(--primary-color) !important;
+  background-color: rgba(14, 165, 233, 0.08) !important;
+}
+
 .scanner-laser-line {
   position: absolute;
   left: 0;
@@ -250,43 +268,46 @@ html:not(.dark) .text-on-surface {
   100% { transform: translateY(0); }
 }
 
-/* GIS map styles */
+/* Leaflet GIS Map Styles overrides */
 .mock-map-canvas {
-  height: 180px;
-  background: #111827;
+  background: #111827 !important;
   position: relative;
-  overflow: hidden;
-  background-image: radial-gradient(rgba(125, 211, 252, 0.15) 1px, transparent 1px);
-  background-size: 16px 16px;
 }
-.map-accent-circle {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  width: 100px;
-  height: 100px;
-  border: 1px solid rgba(125, 211, 252, 0.25);
-  border-radius: 50%;
-  transform: translate(-50%, -50%);
+.leaflet-container {
+  background: var(--surface-container) !important;
+  font-family: inherit;
+}
+.leaflet-bar {
+  border: 1px solid var(--border-color) !important;
+  box-shadow: none !important;
+}
+.leaflet-bar a {
+  background-color: var(--surface-color) !important;
+  color: var(--text-main) !important;
+  border-bottom: 1px solid var(--border-color) !important;
+  transition: background-color 0.2s;
+}
+.leaflet-bar a:hover {
+  background-color: var(--primary-glow) !important;
+  color: var(--primary-color) !important;
+}
+
+/* Floating Expandable Chat Widget transition styles */
+#floating-chat-window {
+  transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1), transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.35);
+}
+
+#floating-chat-window.hidden {
+  display: none !important;
+  opacity: 0;
+  transform: scale(0.9) translateY(20px);
   pointer-events: none;
-  animation: radar-sweep 4s linear infinite;
 }
-@keyframes radar-sweep {
-  0% { transform: translate(-50%, -50%) scale(0.6); opacity: 1; }
-  100% { transform: translate(-50%, -50%) scale(1.6); opacity: 0; }
-}
-.marker-pulse {
-  position: absolute;
-  left: 5px;
-  bottom: 0px;
-  width: 18px;
-  height: 8px;
-  border-radius: 50%;
-  background: rgba(125, 211, 252, 0.4);
-  z-index: -1;
-  animation: marker-glow 1.5s infinite ease-in-out alternate;
-}
-@keyframes marker-glow {
-  0% { transform: scale(0.8); opacity: 0.3; }
-  100% { transform: scale(1.2); opacity: 1; }
+
+#floating-chat-window.active {
+  display: flex !important;
+  opacity: 1;
+  transform: scale(1) translateY(0);
+  pointer-events: auto;
 }

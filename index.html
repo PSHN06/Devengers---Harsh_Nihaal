@@ -3,11 +3,15 @@
 <head>
   <meta charset="utf-8"/>
   <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-  <title>JanVaani.ai - Smart Bharat Civic Companion</title>
+  <title>Smart Bharat - AI-Powered Civic Companion</title>
   
   <!-- Tailwind CSS and Plugins -->
   <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
   
+  <!-- Leaflet.js Mapping CSS and JS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
   <!-- Material Symbols and Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
@@ -103,10 +107,22 @@
   <!-- Top Navigation Bar -->
   <header class="fixed top-0 w-full z-50 bg-background/60 backdrop-blur-2xl border-b border-white/5 flex justify-between items-center px-margin-desktop py-4 h-20">
     <div class="flex items-center gap-4">
-      <span class="text-2xl font-bold text-white tracking-tight">JanVaani<span class="text-primary">.ai</span></span>
-      <nav class="hidden md:flex gap-8 ml-12" aria-label="Quick links">
-        <a class="text-on-surface-variant font-medium hover:text-white transition-all duration-300" href="#" id="nav-btn-services">Schemes Directory</a>
-        <a class="text-on-surface-variant font-medium hover:text-white transition-all duration-300" href="#" id="nav-btn-grievances">Grievances Track</a>
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center">
+          <img class="w-7 h-7 object-contain" alt="Government Seal of India" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAcYGWjmBJIKRj2KhAmU3JRJw-cvoU9OvNuQdqbnQYVwi1Hl2Bk9wJiOgVqahqoLmZiDsMoAdZaJOXRNyeXPWHQai-z7KZkjVvX8Ovxp9CzR1ACMOOYNM31FrxxpBnltpiLnyACEyGv4DNKMHppIyB_JUPFZzPuyLUX1BgKfeZFexjZ5aGjYBu1acrA4JmOTP16a9HLOjv4ul5PsOUHnXFXyQOgN53REJHtt1pYKfuOY8TXxp3pV9adyg"/>
+        </div>
+        <div>
+          <h1 class="text-lg font-bold text-white tracking-tight leading-tight flex items-center gap-1.5">Smart Bharat</h1>
+          <p class="text-[9px] text-on-surface-variant font-medium tracking-wide uppercase">AI-Powered Civic Companion</p>
+        </div>
+      </div>
+      
+      <!-- Primary View Navigation Tabs -->
+      <nav class="hidden md:flex gap-8 ml-12" aria-label="Main Navigation Tabs">
+        <a class="text-primary font-bold border-b-2 border-primary pb-1 transition-all duration-300 nav-view-tab active" href="#" id="tab-nav-home" data-view="home-view">Home</a>
+        <a class="text-on-surface-variant font-medium hover:text-white transition-all duration-300 nav-view-tab" href="#" id="tab-nav-services" data-view="services-view">Services</a>
+        <a class="text-on-surface-variant font-medium hover:text-white transition-all duration-300 nav-view-tab" href="#" id="tab-nav-complaints" data-view="complaints-view">My Complaints</a>
+        <a class="text-on-surface-variant font-medium hover:text-white transition-all duration-300 nav-view-tab" href="#" id="tab-nav-resources" data-view="resources-view">Resources</a>
       </nav>
     </div>
     
@@ -134,425 +150,573 @@
   </header>
 
   <!-- Workspace Shell Layout -->
-  <div class="flex pt-20 min-h-screen max-w-[1440px] w-full mx-auto relative px-4 md:px-0">
-    
-    <!-- Left Sidebar (Browse Directory & AI Assistant) -->
-    <aside class="h-[calc(100vh-120px)] w-80 sticky top-24 m-4 hidden lg:flex flex-col gap-4 glass-panel rounded-xl p-6 shadow-2xl z-40 overflow-y-auto custom-scrollbar">
+  <div class="pt-24 min-h-[calc(100vh-80px)] max-w-[1440px] w-full mx-auto relative px-margin-desktop flex flex-col flex-1 pb-10">
+
+    <!-- VIEW 1: HOME VIEW (Dashboard / Landing Page) -->
+    <div id="home-view" class="view-frame grid grid-cols-1 lg:grid-cols-12 gap-8 items-start w-full my-auto">
       
-      <!-- Seal Header -->
-      <div class="flex items-center gap-4 mb-2">
-        <div class="w-10 h-10 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center">
-          <img class="w-7 h-7 object-contain" alt="Government Seal of India" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAcYGWjmBJIKRj2KhAmU3JRJw-cvoU9OvNuQdqbnQYVwi1Hl2Bk9wJiOgVqahqoLmZiDsMoAdZaJOXRNyeXPWHQai-z7KZkjVvX8Ovxp9CzR1ACMOOYNM31FrxxpBnltpiLnyACEyGv4DNKMHppIyB_JUPFZzPuyLUX1BgKfeZFexjZ5aGjYBu1acrA4JmOTP16a9HLOjv4ul5PsOUHnXFXyQOgN53REJHtt1pYKfuOY8TXxp3pV9adyg"/>
-        </div>
+      <!-- Left Column: AI Assistant Greeting & Primary Bar -->
+      <div class="lg:col-span-4 flex flex-col gap-6">
         <div>
-          <h2 class="text-sm font-bold text-white leading-tight">JanVaani Portal</h2>
-          <p class="text-[10px] text-on-surface-variant">Smart Bharat Civic Companion</p>
+          <h2 class="text-3xl font-extrabold text-white mb-2 leading-tight tracking-tight">Hello! 👋</h2>
+          <h3 class="text-2xl font-bold text-white mb-3">How can I help you today?</h3>
+          <p class="text-xs text-on-surface-variant leading-relaxed">
+            Ask me anything about government services, schemes, documents, or report an issue.
+          </p>
         </div>
-      </div>
 
-      <!-- Segment Toggles -->
-      <nav class="flex flex-col gap-1 border-b border-white/5 pb-4">
-        <button type="button" class="text-left w-full text-on-surface-variant p-2.5 flex items-center gap-3 hover:bg-white/5 transition-colors rounded-lg group active-nav-tab" id="btn-show-services">
-          <span class="material-symbols-outlined group-hover:text-primary transition-colors text-[20px]">account_balance</span>
-          <span class="text-xs font-semibold">Services Directory</span>
-        </button>
-        
-        <button type="button" class="text-left w-full text-on-surface-variant p-2.5 flex items-center gap-3 hover:bg-white/5 transition-colors rounded-lg group" id="btn-show-grievances">
-          <span class="material-symbols-outlined group-hover:text-primary transition-colors text-[20px]">assignment_late</span>
-          <span class="text-xs font-semibold">Complaints Track</span>
-          <span class="ml-auto bg-primary/20 text-primary px-2 py-0.5 rounded-full text-[10px] font-bold" id="grievance-count">3</span>
-        </button>
-      </nav>
-
-      <!-- Directory List Header Title -->
-      <div class="mt-4 mb-2">
-        <h3 class="text-[10px] uppercase tracking-widest font-bold text-primary/60" id="directory-list-title">Services Directory</h3>
-      </div>
-
-      <!-- Dynamic Directory Cards List Container -->
-      <div class="flex-1 min-h-[120px] flex flex-col gap-2 overflow-y-auto custom-scrollbar pr-1" id="services-list-container">
-        <!-- Rendered dynamically by script.js -->
-        <div class="skeleton-box h-12 bg-white/5 rounded-lg"></div>
-        <div class="skeleton-box h-12 bg-white/5 rounded-lg"></div>
-      </div>
-
-      <!-- AI Chat Companion Sidebar Integration -->
-      <div class="flex flex-col gap-3 border-t border-white/5 pt-4">
-        <div class="flex items-center gap-2 text-primary">
-          <span class="material-symbols-outlined text-sm">smart_toy</span>
-          <span class="text-[9px] uppercase tracking-widest font-bold">Civic Companion AI</span>
+        <!-- Central Search Input Box -->
+        <div class="glass-panel rounded-xl p-3 flex gap-3 items-center shadow-md border border-white/10 bg-white/5">
+          <input type="text" id="home-search-input" class="flex-1 bg-transparent border-none text-white text-xs outline-none placeholder-on-surface-variant focus:ring-0 p-1" placeholder="Type your question...">
+          <button type="button" id="home-search-btn" class="bg-primary text-on-primary font-bold w-8 h-8 rounded-lg flex items-center justify-center shadow-md hover:scale-105 active:scale-95 transition-all">
+            <span class="material-symbols-outlined text-sm">send</span>
+          </button>
         </div>
-        <div class="bg-surface-container-high/40 p-3 rounded-lg border border-white/5">
-          <p class="text-[10px] text-on-surface mb-2 leading-relaxed" id="chat-greeting-text">Namaste! Ask me about welfare scheme documentation or corrections in any language.</p>
-          
-          <div class="h-28 overflow-y-auto custom-scrollbar flex flex-col gap-2 pr-1 mb-2" id="chat-history">
-            <!-- Injected by script.js -->
-          </div>
 
-          <div class="flex gap-2">
-            <input class="flex-1 bg-surface-container-lowest border border-white/10 rounded-lg px-2.5 py-1.5 text-[10px] focus:ring-1 focus:ring-primary focus:border-primary outline-none text-white" placeholder="Ask about schemes..." type="text" id="chat-input"/>
-            <button class="bg-primary text-on-primary px-2.5 py-1.5 rounded-lg ice-glow transition-all active:scale-95 flex items-center justify-center" id="send-chat-btn">
-              <span class="material-symbols-outlined text-xs">send</span>
+        <!-- Quick Prompt Pills -->
+        <div class="flex flex-col gap-2.5">
+          <span class="text-[10px] uppercase tracking-widest font-bold text-primary/60">Try asking:</span>
+          <div class="flex flex-col gap-2">
+            <button class="home-prompt-pill text-left bg-white/5 border border-white/5 hover:bg-white/10 rounded-lg p-3 text-xs text-white transition-all flex justify-between items-center group" data-prompt="How to get a Birth Certificate?">
+              <span>How to get a Birth Certificate?</span>
+              <span class="material-symbols-outlined text-[14px] text-primary opacity-0 group-hover:opacity-100 transition-opacity">arrow_forward</span>
+            </button>
+            <button class="home-prompt-pill text-left bg-white/5 border border-white/5 hover:bg-white/10 rounded-lg p-3 text-xs text-white transition-all flex justify-between items-center group" data-prompt="Documents required for PM Awas Yojana?">
+              <span>Documents required for PM Awas Yojana?</span>
+              <span class="material-symbols-outlined text-[14px] text-primary opacity-0 group-hover:opacity-100 transition-opacity">arrow_forward</span>
+            </button>
+            <button class="home-prompt-pill text-left bg-white/5 border border-white/5 hover:bg-white/10 rounded-lg p-3 text-xs text-white transition-all flex justify-between items-center group" data-prompt="How to report a broken street light?">
+              <span>How to report a broken street light?</span>
+              <span class="material-symbols-outlined text-[14px] text-primary opacity-0 group-hover:opacity-100 transition-opacity">arrow_forward</span>
             </button>
           </div>
         </div>
       </div>
 
-      <!-- Lodge Grievance modal launch button -->
-      <button class="w-full bg-white/5 border border-white/10 text-white font-bold py-2.5 rounded-lg shadow-md active:scale-95 transition-all text-center hover:bg-white/10 text-xs mt-2" id="open-voice-modal-btn">
-        Lodge Voice Complaint
-      </button>
+      <!-- Right Column: India Gate Banner & Bento Cards -->
+      <div class="lg:col-span-8 flex flex-col gap-6 w-full">
+        
+        <!-- Large Gradient Hero Banner with Vector SVG India Gate -->
+        <div class="rounded-xl overflow-hidden glass-panel h-56 relative flex items-center px-10 group border border-white/10 bg-gradient-to-r from-sky-400/20 via-sky-600/10 to-amber-500/10 shadow-lg">
+          <div class="z-10 max-w-lg">
+            <h2 class="text-2xl font-extrabold text-white mb-2 tracking-tight">Empowering Citizens.</h2>
+            <h2 class="text-2xl font-extrabold text-white mb-4 tracking-tight">Simplifying Governance.</h2>
+            <p class="text-xs text-on-surface-variant max-w-sm leading-relaxed">
+              AI-powered assistance for a smarter and transparent India. Access welfare benefits, verify identity linkages, and voice public concerns instantly.
+            </p>
+          </div>
+          
+          <!-- Modern Vector SVG Silhouette of India Gate -->
+          <div class="absolute right-6 bottom-0 top-0 w-60 h-full pointer-events-none z-0 flex items-end justify-center select-none opacity-40 group-hover:opacity-60 transition-opacity duration-500">
+            <svg class="h-[95%] w-auto" viewBox="0 0 200 240" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M20 230 H180 V240 H20 Z" fill="var(--primary-color)"/>
+              <path d="M35 150 H165 V230 H135 V165 H65 V230 H35 Z" fill="var(--primary-color)" fill-opacity="0.85"/>
+              <path d="M65 165 C65 130, 135 130, 135 165 Z" fill="var(--bg-color)"/>
+              <path d="M42 60 H158 V150 H42 Z" fill="var(--primary-color)" fill-opacity="0.75"/>
+              <path d="M70 75 C70 50, 130 50, 130 75 Z" fill="var(--primary-color)" fill-opacity="0.95"/>
+              <rect x="50" y="85" width="100" height="40" rx="3" fill="var(--bg-color)" fill-opacity="0.9"/>
+              <path d="M85 85 V125 M115 85 V125" stroke="var(--primary-color)" stroke-width="2"/>
+              <path d="M48 50 H152 V60 H48 Z" fill="var(--primary-color)"/>
+              <circle cx="100" cy="40" r="10" fill="var(--primary-color)" fill-opacity="0.9"/>
+              <line x1="100" y1="20" x2="100" y2="30" stroke="var(--primary-color)" stroke-width="2"/>
+            </svg>
+          </div>
+        </div>
 
-    </aside>
+        <!-- Bento Grid: 4 Action Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          
+          <!-- Card 1: Popular Services -->
+          <button type="button" id="bento-card-services" class="bento-card text-left glass-panel rounded-xl p-6 hover:scale-[1.02] transition-all duration-300 relative group overflow-hidden border border-white/5 bg-white/5 flex flex-col gap-3">
+            <div class="w-12 h-12 rounded-lg bg-emerald-500/10 border border-emerald-500/25 flex items-center justify-center text-emerald-400 group-hover:scale-110 transition-transform">
+              <span class="material-symbols-outlined text-[26px]">account_balance</span>
+            </div>
+            <div>
+              <h4 class="text-sm font-bold text-white mb-1">Popular Services</h4>
+              <p class="text-[10px] text-on-surface-variant leading-relaxed">
+                Explore and apply for various government services & welfare schemes in our directory catalog.
+              </p>
+            </div>
+            <span class="material-symbols-outlined text-xs text-emerald-400 absolute right-4 bottom-4 opacity-50 group-hover:opacity-100 group-hover:translate-x-1 transition-all">arrow_forward</span>
+          </button>
 
-    <!-- Main Content Area Workspace -->
-    <main class="flex-1 px-8 py-4 overflow-x-hidden min-h-[calc(100vh-120px)] flex flex-col">
+          <!-- Card 2: Report an Issue -->
+          <button type="button" id="bento-card-report" class="bento-card text-left glass-panel rounded-xl p-6 hover:scale-[1.02] transition-all duration-300 relative group overflow-hidden border border-white/5 bg-white/5 flex flex-col gap-3">
+            <div class="w-12 h-12 rounded-lg bg-orange-500/10 border border-orange-500/25 flex items-center justify-center text-orange-400 group-hover:scale-110 transition-transform">
+              <span class="material-symbols-outlined text-[26px]">warning</span>
+            </div>
+            <div>
+              <h4 class="text-sm font-bold text-white mb-1">Report an Issue</h4>
+              <p class="text-[10px] text-on-surface-variant leading-relaxed">
+                Report civic issues like potholes, streetlights, or garbage heap and map them to local municipal bodies.
+              </p>
+            </div>
+            <span class="material-symbols-outlined text-xs text-orange-400 absolute right-4 bottom-4 opacity-50 group-hover:opacity-100 group-hover:translate-x-1 transition-all">arrow_forward</span>
+          </button>
+
+          <!-- Card 3: Track Complaints -->
+          <button type="button" id="bento-card-complaints" class="bento-card text-left glass-panel rounded-xl p-6 hover:scale-[1.02] transition-all duration-300 relative group overflow-hidden border border-white/5 bg-white/5 flex flex-col gap-3">
+            <div class="w-12 h-12 rounded-lg bg-blue-500/10 border border-blue-500/25 flex items-center justify-center text-blue-400 group-hover:scale-110 transition-transform">
+              <span class="material-symbols-outlined text-[26px]">assignment</span>
+            </div>
+            <div>
+              <h4 class="text-sm font-bold text-white mb-1">Track Complaints</h4>
+              <p class="text-[10px] text-on-surface-variant leading-relaxed">
+                Track the status of your submitted civic complaints, view official response letters, and check geocoded timeline grids.
+              </p>
+            </div>
+            <span class="material-symbols-outlined text-xs text-blue-400 absolute right-4 bottom-4 opacity-50 group-hover:opacity-100 group-hover:translate-x-1 transition-all">arrow_forward</span>
+          </button>
+
+          <!-- Card 4: Schemes for You -->
+          <button type="button" id="bento-card-schemes" class="bento-card text-left glass-panel rounded-xl p-6 hover:scale-[1.02] transition-all duration-300 relative group overflow-hidden border border-white/5 bg-white/5 flex flex-col gap-3">
+            <div class="w-12 h-12 rounded-lg bg-purple-500/10 border border-purple-500/25 flex items-center justify-center text-purple-400 group-hover:scale-110 transition-transform">
+              <span class="material-symbols-outlined text-[26px]">groups</span>
+            </div>
+            <div>
+              <h4 class="text-sm font-bold text-white mb-1">Schemes for You</h4>
+              <p class="text-[10px] text-on-surface-variant leading-relaxed">
+                Get personalized scheme recommendations that fit your age, income category, and agricultural land parameters.
+              </p>
+            </div>
+            <span class="material-symbols-outlined text-xs text-purple-400 absolute right-4 bottom-4 opacity-50 group-hover:opacity-100 group-hover:translate-x-1 transition-all">arrow_forward</span>
+          </button>
+
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- VIEW 2: SERVICES VIEW (Services Directory Catalog Workspace) -->
+    <div id="services-view" class="view-frame hidden grid grid-cols-1 lg:grid-cols-12 gap-8 items-start w-full">
       
-      <!-- Unified Services Search Bar -->
-      <div class="mb-6">
-        <div class="glass-panel rounded-xl p-3 flex gap-3 items-center">
-          <span class="material-symbols-outlined text-primary">search</span>
-          <input type="text" id="services-search-input" class="flex-1 bg-transparent border-none text-white text-sm outline-none placeholder-on-surface-variant focus:ring-0 p-0" placeholder="Search schemes & services (e.g. PM-Kisan, Ayushman Bharat, Pothole, Aadhaar correction)...">
-          <button type="button" id="services-search-btn" class="bg-primary text-on-primary font-bold px-5 py-2 rounded-lg text-xs hover:scale-105 active:scale-95 transition-all">
-            Search Directory
-          </button>
-        </div>
+      <!-- Left Directory Sidebar -->
+      <aside class="lg:col-span-4 h-[calc(100vh-160px)] flex flex-col gap-4 glass-panel rounded-xl p-6 shadow-md overflow-y-auto custom-scrollbar bg-white/5 border border-white/5 w-full">
         
-        <!-- Category Filter Chips -->
-        <div class="flex gap-2 mt-3 overflow-x-auto pb-1 scrollbar-hide">
-          <button class="category-chip bg-primary/10 border border-primary/20 text-primary text-xs px-3 py-1.5 rounded-full font-semibold" data-category="all">All Services</button>
-          <button class="category-chip bg-white/5 border border-white/5 text-on-surface-variant text-xs px-3 py-1.5 rounded-full hover:bg-white/10" data-category="identification">Identification</button>
-          <button class="category-chip bg-white/5 border border-white/5 text-on-surface-variant text-xs px-3 py-1.5 rounded-full hover:bg-white/10" data-category="agriculture">Agriculture</button>
-          <button class="category-chip bg-white/5 border border-white/5 text-on-surface-variant text-xs px-3 py-1.5 rounded-full hover:bg-white/10" data-category="healthcare">Healthcare</button>
-          <button class="category-chip bg-white/5 border border-white/5 text-on-surface-variant text-xs px-3 py-1.5 rounded-full hover:bg-white/10" data-category="welfare">Welfare</button>
+        <!-- Directory Tab Title Header -->
+        <div class="flex justify-between items-center border-b border-white/5 pb-3">
+          <h3 class="text-xs uppercase tracking-widest font-bold text-primary/60" id="directory-list-title">Services Directory</h3>
+          <span class="material-symbols-outlined text-sm text-on-surface-variant">account_balance</span>
         </div>
-      </div>
 
-      <!-- Empty State Default Frame -->
-      <div id="service-workspace-empty" class="glass-panel rounded-[1.5rem] p-12 flex flex-col items-center justify-center text-center flex-1 my-auto">
-        <span class="material-symbols-outlined text-primary/30 text-5xl mb-4">folder_open</span>
-        <h5 class="text-xl font-bold text-white mb-2">Select a Service or Grievance</h5>
-        <p class="text-sm text-on-surface-variant max-w-sm">Click on any directory card in the sidebar or search above to load guidelines, eligibility pre-checks, document pre-audits, and GIS mapping timelines.</p>
-      </div>
+        <!-- Directory list filter parameters -->
+        <div class="flex flex-col gap-3">
+          <div class="glass-panel rounded-lg p-2 flex gap-2 items-center bg-white/5 border border-white/5">
+            <span class="material-symbols-outlined text-xs text-primary">search</span>
+            <input type="text" id="services-search-input" class="bg-transparent border-none text-white text-[10px] outline-none placeholder-on-surface-variant focus:ring-0 p-0 flex-1" placeholder="Search schemes & services...">
+          </div>
+          
+          <div class="flex gap-1.5 overflow-x-auto pb-1 scrollbar-hide">
+            <button class="category-chip bg-primary/10 border border-primary/20 text-primary text-[9px] px-2.5 py-1 rounded-full font-semibold" data-category="all">All</button>
+            <button class="category-chip bg-white/5 border border-white/5 text-on-surface-variant text-[9px] px-2.5 py-1 rounded-full hover:bg-white/10" data-category="identification">IDs</button>
+            <button class="category-chip bg-white/5 border border-white/5 text-on-surface-variant text-[9px] px-2.5 py-1 rounded-full hover:bg-white/10" data-category="agriculture">Farming</button>
+            <button class="category-chip bg-white/5 border border-white/5 text-on-surface-variant text-[9px] px-2.5 py-1 rounded-full hover:bg-white/10" data-category="healthcare">Health</button>
+            <button class="category-chip bg-white/5 border border-white/5 text-on-surface-variant text-[9px] px-2.5 py-1 rounded-full hover:bg-white/10" data-category="welfare">Welfare</button>
+          </div>
+        </div>
 
-      <!-- Dynamic Active Service Panel -->
-      <div id="service-workspace-content" class="hidden flex-1 flex flex-col">
+        <!-- List container -->
+        <div class="flex-1 overflow-y-auto custom-scrollbar pr-1 flex flex-col gap-2" id="services-list-container">
+          <!-- Injected dynamically -->
+        </div>
+
+      </aside>
+
+      <!-- Right Workspace Container -->
+      <main class="lg:col-span-8 flex flex-col min-h-[calc(100vh-160px)] w-full">
         
-        <!-- Sub-navigation tabs -->
-        <nav class="flex items-center gap-4 mb-6 overflow-x-auto pb-2 scrollbar-hide" id="tabs-nav-wrapper">
-          <button type="button" class="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-primary/10 border border-primary/40 text-primary text-xs font-bold ice-glow transition-all tab-trigger active" id="btn-tab-guide" aria-controls="tab-guide">
-            <span class="material-symbols-outlined text-sm">description</span>
-            Service Guidelines
-          </button>
-          
-          <button type="button" class="flex items-center gap-2 px-4 py-2.5 text-on-surface-variant text-xs font-medium hover:bg-white/5 rounded-lg transition-all tab-trigger" id="btn-tab-eligibility" aria-controls="tab-eligibility">
-            <span class="material-symbols-outlined text-sm">fact_check</span>
-            Eligibility Evaluator
-          </button>
-          
-          <button type="button" class="flex items-center gap-2 px-4 py-2.5 text-on-surface-variant text-xs font-medium hover:bg-white/5 rounded-lg transition-all tab-trigger" id="btn-tab-preaudit" aria-controls="tab-preaudit">
-            <span class="material-symbols-outlined text-sm">qr_code_scanner</span>
-            Document OCR Pre-Audit
-          </button>
-          
-          <button type="button" class="flex items-center gap-2 px-4 py-2.5 text-on-surface-variant text-xs font-medium hover:bg-white/5 rounded-lg transition-all tab-trigger" id="btn-tab-timeline" aria-controls="tab-timeline">
-            <span class="material-symbols-outlined text-sm">analytics</span>
-            Progress Tracker
-          </button>
-        </nav>
-
-        <!-- Selected Service Header Metadata -->
-        <div class="mb-8">
-          <span class="inline-block px-3 py-1 rounded-full bg-primary/10 text-primary border border-primary/20 text-[10px] font-bold uppercase tracking-widest mb-4" id="active-service-tag">Agriculture</span>
-          <h1 class="text-3xl font-extrabold mb-3 leading-tight tracking-tight text-white" id="active-service-title">Pradhan Mantri Kisan Samman Nidhi (PM-KISAN)</h1>
-          <p class="text-sm text-on-surface-variant max-w-3xl leading-relaxed" id="active-service-subtitle">Direct financial benefit transfer scheme of ₹6,000 per year for cultivator families.</p>
+        <!-- Empty workspace frame -->
+        <div id="service-workspace-empty" class="glass-panel rounded-xl p-12 flex flex-col items-center justify-center text-center flex-1 my-auto bg-white/5 border border-white/5">
+          <span class="material-symbols-outlined text-primary/30 text-5xl mb-4">folder_open</span>
+          <h5 class="text-xl font-bold text-white mb-2">Select a Service</h5>
+          <p class="text-xs text-on-surface-variant max-w-sm">Select a directory card in the sidebar or search on the homepage to load criteria parameters, eligibility models, and verification steps.</p>
         </div>
 
-        <!-- TAB PANE 1: SERVICE GUIDELINES -->
-        <div id="tab-guide" class="service-tab-pane active">
-          <!-- Bento Grid Section -->
-          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-            <!-- Basic Requirements & Rules -->
-            <div class="glass-panel rounded-[1.25rem] p-6 relative overflow-hidden group ice-glow transition-all duration-500">
-              <div class="absolute -top-12 -right-12 w-48 h-48 bg-primary/10 rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
-              <div class="flex items-center gap-3 mb-6">
-                <div class="w-9 h-9 rounded-lg bg-primary/20 flex items-center justify-center text-primary border border-primary/30">
-                  <span class="material-symbols-outlined text-[20px]">info</span>
-                </div>
-                <h3 class="text-xl font-bold text-white">Basic Requirements &amp; Rules</h3>
-              </div>
-              <ul class="space-y-4 text-xs" id="active-guide-formats">
-                <!-- Injected dynamically -->
-              </ul>
-            </div>
+        <!-- Active workspace content -->
+        <div id="service-workspace-content" class="hidden flex-1 flex flex-col w-full">
+          
+          <!-- Workspace sub-tab navigation header -->
+          <nav class="flex items-center gap-2 mb-6 overflow-x-auto pb-1.5 scrollbar-hide" id="tabs-nav-wrapper">
+            <button type="button" class="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-primary/10 border border-primary/40 text-primary text-xs font-bold ice-glow transition-all tab-trigger active" id="btn-tab-guide" aria-controls="tab-guide">
+              <span class="material-symbols-outlined text-xs">description</span>
+              Guidelines
+            </button>
             
-            <!-- Common Friction Gaps -->
-            <div class="glass-panel rounded-[1.25rem] p-6 relative overflow-hidden group border-error/20 hover:border-error/40 transition-all duration-500">
-              <div class="absolute -top-12 -right-12 w-48 h-48 bg-error/10 rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
-              <div class="flex items-center gap-3 mb-6">
-                <div class="w-9 h-9 rounded-lg bg-error/20 flex items-center justify-center text-error border border-error/30">
-                  <span class="material-symbols-outlined text-[20px]">warning</span>
-                </div>
-                <h3 class="text-xl font-bold text-white">Common Friction Gaps</h3>
-              </div>
-              <ul class="space-y-4 text-xs" id="active-guide-resolutions">
-                <!-- Injected dynamically -->
-              </ul>
-            </div>
+            <button type="button" class="flex items-center gap-1.5 px-3 py-2 text-on-surface-variant text-xs font-medium hover:bg-white/5 rounded-lg transition-all tab-trigger" id="btn-tab-eligibility" aria-controls="tab-eligibility">
+              <span class="material-symbols-outlined text-xs">fact_check</span>
+              Eligibility Evaluator
+            </button>
+            
+            <button type="button" class="flex items-center gap-1.5 px-3 py-2 text-on-surface-variant text-xs font-medium hover:bg-white/5 rounded-lg transition-all tab-trigger" id="btn-tab-preaudit" aria-controls="tab-preaudit">
+              <span class="material-symbols-outlined text-xs">qr_code_scanner</span>
+              Document OCR Pre-Audit
+            </button>
+          </nav>
+
+          <!-- Selected Card Header -->
+          <div class="mb-6">
+            <span class="inline-block px-2.5 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20 text-[9px] font-bold uppercase tracking-wider mb-2" id="active-service-tag">Agriculture</span>
+            <h2 class="text-2xl font-extrabold text-white mb-2 leading-tight" id="active-service-title">Pradhan Mantri Kisan Samman Nidhi</h2>
+            <p class="text-xs text-on-surface-variant max-w-2xl leading-relaxed" id="active-service-subtitle">Welfare guidelines parameters.</p>
           </div>
 
-          <!-- Standard Verification Pathways -->
-          <div class="mb-8">
-            <h3 class="text-[10px] uppercase tracking-[0.2em] font-bold text-primary/60 mb-6">Standard Verification Pathways</h3>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6" id="active-guide-steps">
-              <!-- Steps Injected dynamically -->
-            </div>
-          </div>
-
-          <!-- Detailed Visual content promo banner -->
-          <div class="rounded-xl overflow-hidden glass-panel h-48 relative flex items-center px-8 group border border-white/10">
-            <div class="z-10 max-w-md">
-              <h3 class="text-lg font-bold mb-2 text-white">Automated Document Review</h3>
-              <p class="text-xs text-on-surface-variant leading-relaxed">Our AI companion cross-references uploaded cards with government registries in real-time to mitigate rejection failures.</p>
-              <button class="mt-4 bg-primary text-on-primary font-bold px-5 py-2 rounded-lg text-xs ice-glow hover:scale-105 transition-all" onclick="document.getElementById('btn-tab-preaudit').click();">Learn more about OCR pre-audit</button>
-            </div>
-            <div class="absolute inset-0 z-0 opacity-20 group-hover:opacity-30 transition-opacity">
-              <div class="w-full h-full bg-cover bg-center mix-blend-screen" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCJ2AMO84TLUC8PdJT6bPDQKmHCwFFP0f7z6joi4n7YE_RiECViVzlceMBY8n_cvsgiypyjE6N6fo5ch1xF8daSGtgI8Yf92Dh1Da5Rbf4ZSDA4scBgVaN7nKcLOgnhYYI27DybgKzQ_lSuYb-rvTmOV_dTJlt9AQPMja3dNMnP7p7dkXZs2p_FaGheHE5KgF-IzJ9Aj2o3dUyA7w_fIgwNOCpjasPrtqNVX5piOBea17GdGjTquA5-Sw')"></div>
-            </div>
-            <div class="absolute inset-0 bg-gradient-to-r from-background via-background/40 to-transparent z-[1]"></div>
-          </div>
-        </div>
-
-        <!-- TAB PANE 2: ELIGIBILITY EVALUATOR -->
-        <div id="tab-eligibility" class="service-tab-pane">
-          <div class="glass-panel rounded-xl p-6 mb-8">
-            <form id="scheme-eval-form" class="space-y-4" onsubmit="return false;">
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label for="scheme-state" class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-2">Residing State/UT</label>
-                  <select id="scheme-state" class="w-full bg-surface-container border border-white/10 rounded-lg p-2.5 text-xs text-white focus:ring-1 focus:ring-primary focus:border-primary outline-none">
-                    <option value="delhi">Delhi</option>
-                    <option value="tamil-nadu">Tamil Nadu</option>
-                    <option value="karnataka">Karnataka</option>
-                    <option value="maharashtra">Maharashtra</option>
-                    <option value="uttar-pradesh">Uttar Pradesh</option>
-                    <option value="madhya-pradesh">Madhya Pradesh</option>
-                  </select>
-                </div>
-                <div>
-                  <label for="scheme-occupation" class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-2">Occupation Category</label>
-                  <select id="scheme-occupation" class="w-full bg-surface-container border border-white/10 rounded-lg p-2.5 text-xs text-white focus:ring-1 focus:ring-primary focus:border-primary outline-none">
-                    <option value="farmer">Farmer / Cultivator</option>
-                    <option value="salaried">Salaried Employee (Private/Govt)</option>
-                    <option value="self-employed">Self-employed / Shopkeeper</option>
-                    <option value="unemployed">Unemployed / Homemaker</option>
-                    <option value="laborer">Daily Wage Laborer</option>
-                  </select>
-                </div>
-              </div>
+          <!-- TAB PANE 1: GUIDELINES -->
+          <div id="tab-guide" class="service-tab-pane active flex flex-col gap-6">
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
               
-              <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-3">
-                <div>
-                  <label for="scheme-age" class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-2">Age (Years)</label>
-                  <input type="number" id="scheme-age" value="42" class="w-full bg-surface-container border border-white/10 rounded-lg p-2.5 text-xs text-white focus:ring-1 focus:ring-primary focus:border-primary outline-none">
+              <!-- Requirement list card -->
+              <div class="glass-panel rounded-xl p-5 border border-white/5 bg-white/5 flex flex-col gap-4">
+                <div class="flex items-center gap-2 text-primary font-bold">
+                  <span class="material-symbols-outlined text-sm">info</span>
+                  <span class="text-xs uppercase tracking-wider">Required Guidelines</span>
                 </div>
-                <div>
-                  <label for="scheme-income" class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-2">Annual Family Income (₹)</label>
-                  <input type="number" id="scheme-income" value="180000" class="w-full bg-surface-container border border-white/10 rounded-lg p-2.5 text-xs text-white focus:ring-1 focus:ring-primary focus:border-primary outline-none">
-                </div>
-                <div>
-                  <label for="scheme-land" class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-2">Landholdings (Acres)</label>
-                  <input type="number" id="scheme-land" step="0.1" value="1.8" class="w-full bg-surface-container border border-white/10 rounded-lg p-2.5 text-xs text-white focus:ring-1 focus:ring-primary focus:border-primary outline-none">
-                </div>
+                <ul class="space-y-3 text-[11px]" id="active-guide-formats">
+                  <!-- Injected dynamically -->
+                </ul>
               </div>
 
-              <button type="button" id="check-eligibility-btn" class="bg-primary text-on-primary font-bold px-6 py-3 rounded-lg text-xs ice-glow hover:scale-105 active:scale-95 transition-all mt-4 flex items-center gap-2">
-                <span class="material-symbols-outlined text-sm">sync</span> Evaluate Eligibility with AI
-              </button>
-            </form>
+              <!-- Exclusions card -->
+              <div class="glass-panel rounded-xl p-5 border border-error/15 bg-white/5 flex flex-col gap-4">
+                <div class="flex items-center gap-2 text-error font-bold">
+                  <span class="material-symbols-outlined text-sm">warning</span>
+                  <span class="text-xs uppercase tracking-wider">Friction Exclusions</span>
+                </div>
+                <ul class="space-y-3 text-[11px]" id="active-guide-resolutions">
+                  <!-- Injected dynamically -->
+                </ul>
+              </div>
 
-            <!-- Results Panel -->
-            <div class="scheme-evaluation-output mt-6 bg-primary/5 border border-primary/20 rounded-xl p-6" id="scheme-output-box">
-              <div class="flex flex-col md:flex-row gap-6 items-center border-b border-white/5 pb-4 mb-4">
-                <div class="relative flex-shrink-0">
-                  <div class="w-20 h-20 rounded-full flex items-center justify-center" id="eligibility-meter">
-                    <div class="w-16 h-16 rounded-full bg-background flex items-center justify-center text-sm font-bold text-white" id="eligibility-percentage">80%</div>
+            </div>
+
+            <!-- Steps list -->
+            <div>
+              <h4 class="text-[9px] uppercase tracking-widest font-bold text-primary/60 mb-3">Verification Milestones</h4>
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="active-guide-steps">
+                <!-- Injected dynamically -->
+              </div>
+            </div>
+
+          </div>
+
+          <!-- TAB PANE 2: ELIGIBILITY EVALUATOR -->
+          <div id="tab-eligibility" class="service-tab-pane hidden">
+            <div class="glass-panel rounded-xl p-5 border border-white/5 bg-white/5 flex flex-col gap-5">
+              
+              <form id="scheme-eval-form" class="space-y-4" onsubmit="return false;">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label for="scheme-state" class="block text-[10px] font-bold text-on-surface-variant uppercase tracking-wider mb-1.5">Residing State/UT</label>
+                    <select id="scheme-state" class="w-full bg-surface-container border border-white/10 rounded-lg p-2.5 text-xs text-white focus:ring-1 focus:ring-primary focus:border-primary outline-none">
+                      <option value="delhi">Delhi</option>
+                      <option value="tamil-nadu">Tamil Nadu</option>
+                      <option value="karnataka">Karnataka</option>
+                      <option value="maharashtra">Maharashtra</option>
+                      <option value="uttar-pradesh">Uttar Pradesh</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label for="scheme-occupation" class="block text-[10px] font-bold text-on-surface-variant uppercase tracking-wider mb-1.5">Occupation Category</label>
+                    <select id="scheme-occupation" class="w-full bg-surface-container border border-white/10 rounded-lg p-2.5 text-xs text-white focus:ring-1 focus:ring-primary focus:border-primary outline-none">
+                      <option value="farmer">Farmer / Cultivator</option>
+                      <option value="salaried">Salaried Employee</option>
+                      <option value="self-employed">Self-Employed / Shopkeeper</option>
+                      <option value="unemployed">Unemployed / Homemaker</option>
+                      <option value="laborer">Daily Wage Laborer</option>
+                    </select>
                   </div>
                 </div>
-                <div>
-                  <h4 class="text-lg font-bold text-white">Approval Probability: <span class="text-primary" id="probability-text">High (Highly Likely)</span></h4>
-                  <p class="text-xs text-on-surface-variant mt-1 leading-relaxed" id="eligibility-brief">Applicant parameters fall within the standard PM-Kisan welfare guidelines.</p>
-                </div>
-              </div>
-
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div class="bg-surface-container/30 border border-white/5 rounded-lg p-4">
-                  <h5 class="text-xs font-bold text-white flex items-center gap-2 uppercase tracking-wide mb-2"><span class="material-symbols-outlined text-emerald text-sm">check_circle</span> Eligible Parameters</h5>
-                  <ul id="eligible-params-list" class="space-y-2 text-[11px] text-on-surface-variant list-disc pl-4">
-                    <!-- Injected dynamically -->
-                  </ul>
-                </div>
                 
-                <div class="bg-surface-container/30 border border-white/5 rounded-lg p-4">
-                  <h5 class="text-xs font-bold text-white flex items-center gap-2 uppercase tracking-wide mb-2"><span class="material-symbols-outlined text-amber text-sm">warning</span> Critical Exclusions</h5>
-                  <ul id="exclusion-params-list" class="space-y-2 text-[11px] text-on-surface-variant list-disc pl-4">
-                    <!-- Injected dynamically -->
-                  </ul>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <label for="scheme-age" class="block text-[10px] font-bold text-on-surface-variant uppercase tracking-wider mb-1.5">Age (Years)</label>
+                    <input type="number" id="scheme-age" value="35" class="w-full bg-surface-container border border-white/10 rounded-lg p-2.5 text-xs text-white focus:ring-1 focus:ring-primary focus:border-primary outline-none">
+                  </div>
+                  <div>
+                    <label for="scheme-income" class="block text-[10px] font-bold text-on-surface-variant uppercase tracking-wider mb-1.5">Annual Family Income (₹)</label>
+                    <input type="number" id="scheme-income" value="120000" class="w-full bg-surface-container border border-white/10 rounded-lg p-2.5 text-xs text-white focus:ring-1 focus:ring-primary focus:border-primary outline-none">
+                  </div>
+                  <div>
+                    <label for="scheme-land" class="block text-[10px] font-bold text-on-surface-variant uppercase tracking-wider mb-1.5">Landholdings (Acres)</label>
+                    <input type="number" id="scheme-land" step="0.1" value="1.5" class="w-full bg-surface-container border border-white/10 rounded-lg p-2.5 text-xs text-white focus:ring-1 focus:ring-primary focus:border-primary outline-none">
+                  </div>
                 </div>
+
+                <button type="button" id="check-eligibility-btn" class="bg-primary text-on-primary font-bold px-5 py-2.5 rounded-lg text-xs ice-glow hover:scale-105 active:scale-95 transition-all flex items-center gap-1.5">
+                  <span class="material-symbols-outlined text-sm">sync</span> Evaluate Eligibility with AI
+                </button>
+              </form>
+
+              <!-- Results Box -->
+              <div class="scheme-evaluation-output bg-primary/5 border border-primary/20 rounded-lg p-5" id="scheme-output-box">
+                <div class="flex flex-col md:flex-row gap-5 items-center border-b border-white/5 pb-3 mb-3">
+                  <div class="w-16 h-16 rounded-full flex items-center justify-center shrink-0" id="eligibility-meter" style="background: conic-gradient(rgba(255,255,255,0.06) 360deg, transparent 0deg)">
+                    <div class="w-12 h-12 rounded-full bg-background flex items-center justify-center text-xs font-bold text-white" id="eligibility-percentage">--</div>
+                  </div>
+                  <div>
+                    <h4 class="text-sm font-bold text-white">Probability Check: <span id="probability-text" class="text-on-surface-variant">Awaiting calculations</span></h4>
+                    <p class="text-[10px] text-on-surface-variant mt-1" id="eligibility-brief">Adjust metrics above and run checks.</p>
+                  </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
+                  <div>
+                    <h5 class="text-[9px] font-bold text-white uppercase tracking-wider flex items-center gap-1.5 mb-1.5"><span class="material-symbols-outlined text-emerald-400 text-xs">check_circle</span> Approved Parameters</h5>
+                    <ul id="eligible-params-list" class="space-y-1 text-[9px] text-on-surface-variant list-disc pl-3">
+                      <!-- Injected -->
+                    </ul>
+                  </div>
+                  <div>
+                    <h5 class="text-[9px] font-bold text-white uppercase tracking-wider flex items-center gap-1.5 mb-1.5"><span class="material-symbols-outlined text-amber-500 text-xs">warning</span> Exclusion Flags</h5>
+                    <ul id="exclusion-params-list" class="space-y-1 text-[9px] text-on-surface-variant list-disc pl-3">
+                      <!-- Injected -->
+                    </ul>
+                  </div>
+                </div>
+
+                <div class="mt-4 border-t border-white/5 pt-3">
+                  <h5 class="text-[9px] font-bold text-white uppercase tracking-wider mb-2">Required Document Verification Check</h5>
+                  <div class="flex flex-col gap-2" id="scheme-document-checklist">
+                    <!-- Checklist -->
+                  </div>
+                </div>
+
               </div>
 
-              <div class="mt-6 border-t border-white/5 pt-4">
-                <h5 class="text-xs font-bold text-white uppercase tracking-wide mb-3">Required Documents Checklist (AI Simplified)</h5>
-                <div class="flex flex-col gap-2.5" id="scheme-document-checklist">
-                  <!-- Checklist items injected -->
-                </div>
-              </div>
             </div>
-
           </div>
-        </div>
 
-        <!-- TAB PANE 3: DOCUMENT OCR PRE-AUDIT -->
-        <div id="tab-preaudit" class="service-tab-pane">
-          <div class="glass-panel rounded-xl p-6 mb-8">
-            <div class="ocr-scanner-widget">
-              <div class="ocr-dropzone border-2 border-dashed border-primary/20 rounded-xl p-10 text-center relative bg-surface-container-high/10 overflow-hidden" id="ocr-dropzone">
+          <!-- TAB PANE 3: DOCUMENT OCR PRE-AUDIT -->
+          <div id="tab-preaudit" class="service-tab-pane hidden">
+            <div class="glass-panel rounded-xl p-5 border border-white/5 bg-white/5 flex flex-col gap-4">
+              
+              <!-- OCR Dropzone with click and drag handlers -->
+              <div class="ocr-dropzone border-2 border-dashed border-primary/20 rounded-xl p-8 text-center relative bg-surface-container-high/10 overflow-hidden cursor-pointer hover:bg-white/5 transition-all" id="ocr-dropzone">
                 <div class="scanner-laser-line hidden" id="scanner-laser"></div>
                 
+                <!-- Hidden native file input element -->
+                <input type="file" id="ocr-file-input" class="hidden" accept="image/*,.pdf">
+                
                 <div class="dropzone-content" id="dropzone-prompt">
-                  <span class="material-symbols-outlined text-primary/30 text-5xl mb-4">cloud_upload</span>
-                  <h5 class="text-base font-bold text-white mb-2" id="preaudit-dropzone-title">Upload Aadhaar or PAN Card for Scanning</h5>
-                  <p class="text-xs text-on-surface-variant max-w-xs mx-auto mb-6">Simulate an instant AI OCR scan to cross-verify matching credentials and linkage status.</p>
+                  <span class="material-symbols-outlined text-primary/30 text-4xl mb-3">cloud_upload</span>
+                  <h5 class="text-sm font-bold text-white mb-1.5" id="preaudit-dropzone-title">Upload Aadhaar or PAN Card for Scanning</h5>
+                  <p class="text-[10px] text-on-surface-variant max-w-xs mx-auto mb-4">Click to open file picker, or drag and drop your document image here.</p>
                   
                   <div class="flex justify-center gap-3">
-                    <button class="bg-white/5 hover:bg-white/10 text-white border border-white/10 font-bold px-4 py-2 rounded-lg text-[10px] flex items-center gap-1.5 transition-colors" id="sim-aadhaar-btn">
-                      <span class="material-symbols-outlined text-sm">id_card</span> Aadhaar Mismatch Check
+                    <button type="button" class="bg-white/5 hover:bg-white/10 text-white border border-white/10 font-bold px-3 py-1.5 rounded-lg text-[9px] flex items-center gap-1 transition-colors" id="sim-aadhaar-btn">
+                      <span class="material-symbols-outlined text-xs">id_card</span> Mismatch Demo
                     </button>
-                    <button class="bg-white/5 hover:bg-white/10 text-white border border-white/10 font-bold px-4 py-2 rounded-lg text-[10px] flex items-center gap-1.5 transition-colors" id="sim-pan-btn">
-                      <span class="material-symbols-outlined text-sm">badge</span> PAN Linkage Check
+                    <button type="button" class="bg-white/5 hover:bg-white/10 text-white border border-white/10 font-bold px-3 py-1.5 rounded-lg text-[9px] flex items-center gap-1 transition-colors" id="sim-pan-btn">
+                      <span class="material-symbols-outlined text-xs">badge</span> Linking Demo
                     </button>
                   </div>
                 </div>
               </div>
 
               <!-- OCR Results Display -->
-              <div class="ocr-results-box hidden bg-primary/5 border border-primary/20 rounded-xl p-6 mt-6" id="ocr-results-box">
-                <div class="flex items-center gap-3 border-b border-white/5 pb-4 mb-4">
-                  <span class="px-2 py-0.5 rounded bg-error/20 text-error text-[10px] font-bold uppercase tracking-wider border border-error/25" id="ocr-status-badge">Mismatch Detected</span>
-                  <h4 class="text-sm font-bold text-white">AI OCR Diagnostic Report</h4>
+              <div class="ocr-results-box hidden bg-primary/5 border border-primary/20 rounded-xl p-5" id="ocr-results-box">
+                <div class="flex items-center gap-2.5 border-b border-white/5 pb-3 mb-3">
+                  <span class="px-2 py-0.5 rounded bg-error/20 text-error text-[9px] font-bold uppercase border border-error/25" id="ocr-status-badge">Mismatch</span>
+                  <h4 class="text-xs font-bold text-white">AI OCR Diagnostic Report</h4>
                 </div>
                 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div class="bg-surface-container/30 border border-error/10 rounded-lg p-4">
-                    <h5 class="text-xs font-bold text-white flex items-center gap-2 uppercase tracking-wide mb-2"><span class="material-symbols-outlined text-error text-sm">cancel</span> Audit Findings & Gaps</h5>
-                    <p class="text-xs text-on-surface-variant leading-relaxed" id="ocr-findings-text">Demographic mismatch detected. spelling differs from records.</p>
+                  <div class="bg-surface-container/30 border border-white/5 rounded-lg p-3">
+                    <h5 class="text-[9px] font-bold text-white flex items-center gap-1.5 mb-1.5"><span class="material-symbols-outlined text-error text-xs">cancel</span> Diagnostic Findings</h5>
+                    <p class="text-[10px] text-on-surface-variant leading-relaxed" id="ocr-findings-text">Demographic mismatch.</p>
                   </div>
-                  <div class="bg-surface-container/30 border border-white/5 rounded-lg p-4">
-                    <h5 class="text-xs font-bold text-white flex items-center gap-2 uppercase tracking-wide mb-2"><span class="material-symbols-outlined text-primary text-sm">build</span> Suggested Resolution</h5>
-                    <p class="text-xs text-on-surface-variant leading-relaxed" id="ocr-resolution-text">Submit Gazetted affidavit or update identity credentials locally.</p>
+                  <div class="bg-surface-container/30 border border-white/5 rounded-lg p-3">
+                    <h5 class="text-[9px] font-bold text-white flex items-center gap-1.5 mb-1.5"><span class="material-symbols-outlined text-primary text-xs">build</span> Resolution Strategy</h5>
+                    <p class="text-[10px] text-on-surface-variant leading-relaxed" id="ocr-resolution-text">Update demographic records.</p>
                   </div>
                 </div>
                 
-                <button type="button" class="mt-4 bg-white/5 border border-white/10 text-white font-bold px-4 py-2 rounded-lg text-[10px] flex items-center gap-1 hover:bg-white/10" id="reset-ocr-btn">
-                  <span class="material-symbols-outlined text-sm">restart_alt</span> Scan Another Document
+                <button type="button" class="mt-4 bg-white/5 border border-white/10 text-white font-bold px-3 py-1.5 rounded-lg text-[9px] flex items-center gap-1 hover:bg-white/10" id="reset-ocr-btn">
+                  <span class="material-symbols-outlined text-xs">restart_alt</span> Scan Another File
                 </button>
               </div>
+
             </div>
           </div>
+
         </div>
 
-        <!-- TAB PANE 4: PROGRESS TRACKER -->
-        <div id="tab-timeline" class="service-tab-pane">
-          <div class="glass-panel rounded-xl p-6 mb-8">
-            <h4 class="text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-6" id="timeline-title-label">Administrative Progress Pipeline</h4>
+      </main>
+
+    </div>
+
+    <!-- VIEW 3: COMPLAINTS VIEW (Grievance timeline tracker & GIS Map) -->
+    <div id="complaints-view" class="view-frame hidden grid grid-cols-1 lg:grid-cols-12 gap-8 items-start w-full">
+      
+      <!-- Left sidebar grievances directory list -->
+      <aside class="lg:col-span-4 h-[calc(100vh-160px)] flex flex-col gap-4 glass-panel rounded-xl p-6 shadow-md overflow-y-auto custom-scrollbar bg-white/5 border border-white/5 w-full">
+        
+        <div class="flex justify-between items-center border-b border-white/5 pb-3">
+          <h3 class="text-xs uppercase tracking-widest font-bold text-primary/60">Grievances Pipeline</h3>
+          <span class="material-symbols-outlined text-sm text-on-surface-variant">assignment_late</span>
+        </div>
+
+        <div class="flex-1 overflow-y-auto custom-scrollbar pr-1 flex flex-col gap-2" id="grievances-list-container">
+          <!-- Injected dynamically -->
+        </div>
+
+        <button class="w-full bg-white/5 border border-white/10 text-white font-bold py-2.5 rounded-lg shadow-md active:scale-95 transition-all text-center hover:bg-white/10 text-xs mt-2" id="open-voice-modal-btn">
+          Lodge Voice Complaint
+        </button>
+      </aside>
+
+      <!-- Right Tracker Workspace -->
+      <main class="lg:col-span-8 flex flex-col min-h-[calc(100vh-160px)] w-full">
+        
+        <div id="grievance-workspace-empty" class="glass-panel rounded-xl p-12 flex flex-col items-center justify-center text-center flex-1 my-auto bg-white/5 border border-white/5">
+          <span class="material-symbols-outlined text-primary/30 text-5xl mb-4">folder_open</span>
+          <h5 class="text-xl font-bold text-white mb-2">Select a Complaint</h5>
+          <p class="text-xs text-on-surface-variant max-w-sm">Select a ticket in the sidebar, or speak a new complaint inside the Voice Modal to load real-time GIS mapping updates.</p>
+        </div>
+
+        <div id="grievance-workspace-content" class="hidden flex-1 flex flex-col w-full gap-6">
+          
+          <div class="glass-panel rounded-xl p-6 border border-white/5 bg-white/5 flex flex-col gap-6">
             
-            <!-- Timeline steps -->
-            <div class="pipeline-wrapper relative mb-8">
-              <div class="pipeline-line absolute top-6 left-[8%] right-[8%] h-1 bg-white/5 rounded-full overflow-hidden z-[1]">
-                <div class="pipeline-fill h-full bg-primary" id="pipeline-progress-fill" style="width: 25%;"></div>
-              </div>
-              
-              <div class="pipeline-stages flex justify-between relative z-[2]" id="pipeline-stages-container">
-                <!-- Timeline milestones steps generated dynamically -->
+            <div class="mb-2">
+              <span class="inline-block px-2.5 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20 text-[9px] font-bold uppercase tracking-wider mb-2" id="grievance-service-tag">MUNICIPALITY</span>
+              <h2 class="text-2xl font-extrabold text-white mb-2 leading-tight" id="grievance-service-title">Streetlight Outage</h2>
+              <p class="text-xs text-on-surface-variant leading-relaxed" id="grievance-service-subtitle">Defunct infrastructure details.</p>
+            </div>
+
+            <!-- Tracker Timeline -->
+            <div>
+              <h4 class="text-[9px] uppercase tracking-widest font-bold text-primary/60 mb-5">Administrative Timeline Tracker</h4>
+              <div class="pipeline-wrapper relative mb-6">
+                <!-- Vertical line for mobile, horizontal for desktop -->
+                <div class="pipeline-line absolute top-6 left-[8%] right-[8%] h-1 bg-white/5 rounded-full overflow-hidden z-[1] hidden md:block">
+                  <div class="pipeline-fill h-full bg-primary" id="pipeline-progress-fill" style="width: 5%;"></div>
+                </div>
+                
+                <div class="pipeline-stages flex flex-col md:flex-row justify-between relative z-[2] gap-4 md:gap-0" id="pipeline-stages-container">
+                  <!-- Milestones generated dynamically -->
+                </div>
               </div>
             </div>
 
-            <!-- Assigned department info -->
-            <div class="bg-surface-container/30 border border-white/5 rounded-lg p-4 flex gap-4 items-start mb-6">
+            <!-- Assigned node info -->
+            <div class="bg-surface-container/30 border border-white/5 rounded-lg p-3 flex gap-3.5 items-start">
               <div class="w-8 h-8 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shrink-0">
-                <span class="material-symbols-outlined text-sm" id="assignment-icon">account_balance</span>
+                <span class="material-symbols-outlined text-sm" id="assignment-icon">lan</span>
               </div>
               <div>
-                <h5 class="text-xs font-bold text-white mb-1" id="assigned-agency-header">Assigned Department Office</h5>
-                <p class="text-xs text-on-surface font-medium" id="detail-assigned-agency">Welfare Board Portal Gateway Node</p>
-                <p class="text-[10px] text-on-surface-variant mt-1" id="detail-agency-log">Record initiated under transaction hash #JW-9820-REG</p>
+                <h5 class="text-xs font-bold text-white mb-0.5" id="assigned-agency-header">Assigned Office</h5>
+                <p class="text-[10px] text-on-surface font-medium" id="detail-assigned-agency">MCD Electrical Dept</p>
+                <p class="text-[9px] text-on-surface-variant mt-1" id="detail-agency-log">Loading tracker log...</p>
               </div>
             </div>
 
-            <!-- Draft and Maps layout grid -->
+            <!-- Grid of Official Letter Draft and Leaflet Map -->
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <!-- AI generated draft box -->
-              <div class="bg-surface-container-high/35 border border-white/5 rounded-xl p-5 flex flex-col">
-                <div class="flex items-center gap-2 mb-3">
-                  <span class="material-symbols-outlined text-primary text-sm" id="draft-icon-type">draft</span>
-                  <h5 class="text-xs font-bold text-white uppercase tracking-wider" id="draft-title-label">AI Generated Representation Draft</h5>
+              
+              <!-- Letter Draft -->
+              <div class="bg-surface-container-high/35 border border-white/5 rounded-xl p-4 flex flex-col">
+                <div class="flex items-center gap-2 mb-2">
+                  <span class="material-symbols-outlined text-primary text-xs">mark_email_read</span>
+                  <h5 class="text-[10px] font-bold text-white uppercase tracking-wider">AI Generated Official Representation</h5>
                 </div>
-                <p class="text-[10px] text-on-surface-variant mb-3 leading-relaxed" id="draft-desc-label">Formal administrative representational letter compiled in English.</p>
+                <p class="text-[9px] text-on-surface-variant mb-3 leading-relaxed">Official grievance report compiled by Gemini to match administrative codes.</p>
                 
-                <div class="bg-background/80 border border-white/10 rounded-lg p-3 max-h-56 overflow-y-auto custom-scrollbar flex-1 mb-4">
-                  <pre class="font-mono text-[10px] text-on-surface-variant whitespace-pre-wrap break-all leading-relaxed" id="detail-draft-text">To,
-The Welfare Commissioner...</pre>
+                <div class="bg-background/80 border border-white/10 rounded-lg p-3 max-h-48 overflow-y-auto custom-scrollbar flex-1 mb-4">
+                  <pre class="font-mono text-[9px] text-on-surface-variant whitespace-pre-wrap break-all leading-relaxed" id="detail-draft-text">Drafting...</pre>
                 </div>
                 
                 <div class="flex gap-2">
-                  <button class="bg-white/5 border border-white/10 text-white font-semibold px-3 py-1.5 rounded-lg text-[10px] flex items-center gap-1 hover:bg-white/10" id="copy-draft-btn">
+                  <button type="button" class="bg-white/5 border border-white/10 text-white font-semibold px-3 py-1.5 rounded-lg text-[9px] flex items-center gap-1 hover:bg-white/10" id="copy-draft-btn">
                     <span class="material-symbols-outlined text-xs">content_copy</span> Copy Text
                   </button>
-                  <button class="bg-white/5 border border-white/10 text-white font-semibold px-3 py-1.5 rounded-lg text-[10px] flex items-center gap-1 hover:bg-white/10" id="translate-draft-btn">
+                  <button type="button" class="bg-white/5 border border-white/10 text-white font-semibold px-3 py-1.5 rounded-lg text-[9px] flex items-center gap-1 hover:bg-white/10" id="translate-draft-btn">
                     <span class="material-symbols-outlined text-xs">translate</span> View in Hindi
                   </button>
                 </div>
               </div>
 
-              <!-- GIS Map box overlay -->
-              <div class="bg-surface-container-high/35 border border-white/5 rounded-xl p-5 flex flex-col">
-                <div class="flex items-center gap-2 mb-3">
-                  <span class="material-symbols-outlined text-primary text-sm">map</span>
-                  <h5 class="text-xs font-bold text-white uppercase tracking-wider" id="map-title-label">GIS Location Network Overlay</h5>
+              <!-- Leaflet Map Canvas -->
+              <div class="bg-surface-container-high/35 border border-white/5 rounded-xl p-4 flex flex-col">
+                <div class="flex items-center gap-2 mb-2">
+                  <span class="material-symbols-outlined text-primary text-xs">map</span>
+                  <h5 class="text-[10px] font-bold text-white uppercase tracking-wider">GIS Location Network Overlay</h5>
                 </div>
-                <div class="mock-map-canvas rounded-lg border border-white/10 flex-1 overflow-hidden" id="mock-map-canvas">
-                  <div class="absolute inset-0 bg-gradient-to-t from-background/40 to-transparent pointer-events-none z-[2]"></div>
-                  <div class="map-accent-circle" id="map-radar"></div>
-                  
-                  <div class="absolute top-3 right-3 bg-background/90 border border-primary/30 px-2 py-0.5 rounded text-[8px] font-mono text-primary flex gap-3 z-[3]">
-                    <span>NODE: IND-901</span>
-                    <span>SIGNAL: 100%</span>
-                  </div>
-
-                  <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-full text-primary z-[4]" id="map-pin">
-                    <span class="material-symbols-outlined text-3xl">location_on</span>
-                    <div class="marker-pulse"></div>
-                  </div>
-                  
-                  <span class="absolute bottom-2 left-2 bg-background/80 px-2 py-0.5 border border-white/5 rounded text-[8px] font-semibold text-on-surface-variant z-[3]" id="detail-lat-lng">Lat: 28.5921, Lng: 77.0620</span>
+                
+                <!-- Leaflet mount div -->
+                <div class="mock-map-canvas rounded-lg border border-white/10 flex-1 overflow-hidden z-10" id="mock-map-canvas" style="min-height: 180px;">
+                  <!-- Leaflet tiles render here -->
                 </div>
 
-                <div class="mt-4 text-[10px] text-on-surface-variant leading-relaxed" id="map-meta-label">
-                  <p><strong>Lattice Identifier:</strong> JW-GEO-<span id="detail-geocode">DW15-882</span></p>
-                  <p><strong>Municipal Grid Node:</strong> Sector 15 block-node registry mapping</p>
+                <div class="mt-4 text-[9px] text-on-surface-variant leading-relaxed">
+                  <p><strong>Lattice Code:</strong> CP-GEO-<span id="detail-geocode">---</span></p>
+                  <p><strong>Coordinates:</strong> <span id="detail-lat-lng">Lat: --, Lng: --</span></p>
                 </div>
               </div>
+
             </div>
 
           </div>
+
         </div>
 
-      </div>
+      </main>
 
-    </main>
+    </div>
+
+    <!-- VIEW 4: RESOURCES VIEW (External portal mappings catalog) -->
+    <div id="resources-view" class="view-frame hidden flex-1 flex flex-col my-auto">
+      <div class="glass-panel rounded-xl p-8 border border-white/5 bg-white/5 max-w-3xl mx-auto w-full">
+        <div class="flex items-center gap-3 border-b border-white/5 pb-4 mb-6">
+          <span class="material-symbols-outlined text-primary text-2xl">menu_book</span>
+          <div>
+            <h2 class="text-xl font-bold text-white">Smart Bharat Resources Library</h2>
+            <p class="text-xs text-on-surface-variant">Access official Central and State government application platforms directly.</p>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          
+          <a href="https://www.myscheme.gov.in/" target="_blank" class="p-4 rounded-lg bg-white/5 border border-white/5 hover:border-primary/20 hover:bg-white/10 transition-all flex items-start gap-3 group">
+            <span class="material-symbols-outlined text-primary mt-0.5 group-hover:scale-110 transition-transform">search</span>
+            <div>
+              <h4 class="text-xs font-bold text-white flex items-center gap-1 group-hover:text-primary transition-colors">myScheme Platform <span class="material-symbols-outlined text-[10px]">open_in_new</span></h4>
+              <p class="text-[10px] text-on-surface-variant leading-relaxed mt-1">National discoverability portal to search citizen schemes eligibility parameters.</p>
+            </div>
+          </a>
+
+          <a href="https://myaadhaar.uidai.gov.in/" target="_blank" class="p-4 rounded-lg bg-white/5 border border-white/5 hover:border-primary/20 hover:bg-white/10 transition-all flex items-start gap-3 group">
+            <span class="material-symbols-outlined text-primary mt-0.5 group-hover:scale-110 transition-transform">id_card</span>
+            <div>
+              <h4 class="text-xs font-bold text-white flex items-center gap-1 group-hover:text-primary transition-colors">UIDAI myAadhaar Kiosk <span class="material-symbols-outlined text-[10px]">open_in_new</span></h4>
+              <p class="text-[10px] text-on-surface-variant leading-relaxed mt-1">Official demographic address change and document update portal.</p>
+            </div>
+          </a>
+
+          <a href="https://www.jansamarth.in/" target="_blank" class="p-4 rounded-lg bg-white/5 border border-white/5 hover:border-primary/20 hover:bg-white/10 transition-all flex items-start gap-3 group">
+            <span class="material-symbols-outlined text-primary mt-0.5 group-hover:scale-110 transition-transform">payments</span>
+            <div>
+              <h4 class="text-xs font-bold text-white flex items-center gap-1 group-hover:text-primary transition-colors">JanSamarth Portal <span class="material-symbols-outlined text-[10px]">open_in_new</span></h4>
+              <p class="text-[10px] text-on-surface-variant leading-relaxed mt-1">Central credit linked capital subsidy loan schemes pre-checks program.</p>
+            </div>
+          </a>
+
+          <a href="https://e-shram.gov.in/" target="_blank" class="p-4 rounded-lg bg-white/5 border border-white/5 hover:border-primary/20 hover:bg-white/10 transition-all flex items-start gap-3 group">
+            <span class="material-symbols-outlined text-primary mt-0.5 group-hover:scale-110 transition-transform">engineering</span>
+            <div>
+              <h4 class="text-xs font-bold text-white flex items-center gap-1 group-hover:text-primary transition-colors">eShram Registry <span class="material-symbols-outlined text-[10px]">open_in_new</span></h4>
+              <p class="text-[10px] text-on-surface-variant leading-relaxed mt-1">National database for unorganized workers identification and enrollment card updates.</p>
+            </div>
+          </a>
+
+        </div>
+      </div>
+    </div>
+
   </div>
 
-  <!-- VOICE COMPLAINT MODAL -->
+  <!-- VOICE COMPLAINT MODAL (Slide-in overlay) -->
   <div class="voice-modal-overlay fixed inset-0 bg-background/80 backdrop-blur-md flex items-center justify-center z-50 hidden" id="voice-modal">
     <div class="glass-panel voice-modal-content rounded-xl p-6 shadow-2xl max-w-lg w-full m-4">
       <div class="modal-header flex justify-between items-center border-b border-white/5 pb-3 mb-4">
@@ -598,7 +762,7 @@ The Welfare Commissioner...</pre>
             <button type="button" class="demo-btn text-left bg-white/5 border border-white/5 hover:bg-white/10 rounded p-2 text-[10px] flex items-center gap-2 truncate text-white" data-lang="hi" data-text="भैया गली की स्ट्रीट लाइट दो हफ्ते से खराब है, रात को बहुत अंधेरा रहता है और चोरियों का डर है। (Delhi, Sector 15)">
               <span class="px-2 py-0.5 rounded bg-amber-500/10 text-amber-500 border border-amber-500/25 text-[8px] font-bold">Hindi</span> Streetlight Out Demo
             </button>
-            <button type="button" class="demo-btn text-left bg-white/5 border border-white/5 hover:bg-white/10 rounded p-2 text-[10px] flex items-center gap-2 truncate text-white" data-lang="ta" data-text="அண்ணா நகர் மெயின் ರோடுಲ பெரிய பள்ளம் இருக்கு, மழை பெய்யும்போது ವண்டி ಓட்டве ಬಯಮಾ இருக்கு. (Chennai, Anna Nagar)">
+            <button type="button" class="demo-btn text-left bg-white/5 border border-white/5 hover:bg-white/10 rounded p-2 text-[10px] flex items-center gap-2 truncate text-white" data-lang="ta" data-text="அண்ணா நகர் மெயின் ರோடுಲ பெரிய பள்ளம் இருக்கு, மழை பெய்யும்போது ವண்டி ஓட்டவே ಬಯமா இருக்கு. (Chennai, Anna Nagar)">
               <span class="px-2 py-0.5 rounded bg-blue-500/10 text-blue-500 border border-blue-500/25 text-[8px] font-bold">Tamil</span> Road Pothole Demo
             </button>
             <button type="button" class="demo-btn text-left bg-white/5 border border-white/5 hover:bg-white/10 rounded p-2 text-[10px] flex items-center gap-2 truncate text-white" data-lang="kn" data-text="ನಮ್ಮ ಬಡಾವಣೆಯಲ್ಲಿ ಕಸ ವಿಲೇವಾರಿ ಸರಿಯಾಗಿ ಆಗ್ತಿಲ್ಲ, ಕಸದ ಕೊಳೆತ ವಾಸನೆಗೆ ಕಾಯಿಲೆ ಹರಡಬಹುದು. (Bengaluru, Indiranagar)">
@@ -640,16 +804,59 @@ The Welfare Commissioner...</pre>
     </div>
   </div>
 
+  <!-- FLOATING EXPANDABLE AI CHAT COMPANION WIDGET (Bottom Right Corner) -->
+  <div class="fixed bottom-6 right-6 z-[1000] flex flex-col items-end gap-3" id="floating-chat-container">
+    
+    <!-- Floating Chat Window Pane (Minimized by default) -->
+    <div class="w-80 h-96 rounded-xl shadow-2xl border border-white/10 bg-surface-color/95 backdrop-blur-xl flex flex-col overflow-hidden hidden transition-all duration-300 transform scale-95 opacity-0 origin-bottom-right" id="floating-chat-window">
+      
+      <!-- Widget Header -->
+      <div class="bg-primary/10 border-b border-white/5 px-4 py-3 flex justify-between items-center shrink-0">
+        <div class="flex items-center gap-2 text-primary font-bold text-xs">
+          <span class="material-symbols-outlined text-sm">smart_toy</span>
+          <span>Civic Companion AI</span>
+        </div>
+        <button type="button" class="text-on-surface-variant hover:text-white" id="close-floating-chat-btn" aria-label="Minimize Chat">
+          <span class="material-symbols-outlined text-sm">close</span>
+        </button>
+      </div>
+
+      <!-- Widget Conversation Log History -->
+      <div class="flex-1 overflow-y-auto custom-scrollbar p-4 flex flex-col gap-2 bg-transparent" id="floating-chat-history">
+        <!-- Message logs injected here -->
+        <div class="p-2 rounded-lg text-[10px] leading-relaxed flex flex-col bg-white/5 mr-4 self-start text-on-surface-variant border border-white/5">
+          <span class="block font-bold mb-0.5 text-primary/60 uppercase text-[8px]">Companion</span>
+          <div>Namaste! I am your AI Civic Companion. Ask me details about welfare schemes, verification timelines, or municipal procedures.</div>
+        </div>
+      </div>
+
+      <!-- Widget Chat Input Bar -->
+      <div class="p-3 border-t border-white/5 bg-surface-container/50 flex gap-2 shrink-0">
+        <input class="flex-1 bg-surface-container border border-white/10 rounded-lg px-2.5 py-1.5 text-[10px] focus:ring-1 focus:ring-primary focus:border-primary outline-none text-white" placeholder="Ask about schemes..." type="text" id="floating-chat-input"/>
+        <button class="bg-primary text-on-primary px-2.5 py-1.5 rounded-lg ice-glow transition-all active:scale-95 flex items-center justify-center" id="send-floating-chat-btn">
+          <span class="material-symbols-outlined text-xs">send</span>
+        </button>
+      </div>
+
+    </div>
+
+    <!-- Floating Circular Trigger Button -->
+    <button type="button" class="w-12 h-12 rounded-full bg-primary text-on-primary shadow-2xl flex items-center justify-center hover:scale-105 active:scale-95 transition-all cursor-pointer ice-glow" id="trigger-floating-chat-btn" aria-label="Toggle Companion AI Chat">
+      <span class="material-symbols-outlined text-xl">chat</span>
+    </button>
+
+  </div>
+
   <!-- Footer -->
   <footer class="w-full py-12 bg-surface-container-lowest border-t border-white/5 mt-16 relative z-50">
     <div class="flex flex-col items-center justify-center gap-6 max-w-container-max mx-auto px-margin-desktop text-center">
       <div class="flex items-center gap-4 mb-2">
-        <span class="text-2xl font-bold text-white">JanVaani<span class="text-primary">.ai</span></span>
+        <span class="text-2xl font-bold text-white">Smart Bharat</span>
         <div class="w-px h-6 bg-white/10"></div>
         <img class="h-8 grayscale opacity-40 hover:grayscale-0 hover:opacity-100 transition-all cursor-pointer" alt="Digital India Logo" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAHbr-hdbqRsJ2gbPEtiiC23LiLGrbnc-S_EmBXZj7Qdqh2u83Uso_VkRNUaaaEm7tYcct6vCoforo4kpUxdvJ-L190LncaMmGDQVQqvA959Y42WyeFYo3ch7DbgRZg3vUwLHUS4uYnSHZRr5bd86kwPMv0TwimLt8ot4v1BHeAHZBK39BsbgMNDY_LCbgnaF_oVwK9JKrPHP8zj7y8LhZsApiJlOoP8xtUt5xXjyT91P7sUqExe8W1iQ"/>
       </div>
       <p class="text-xs text-on-surface-variant max-w-2xl leading-relaxed">
-        © 2026 JanVaani.ai - Digital India Initiative. Empowering citizens through AI-driven civic accessibility. Built for the Global Prompt Engineering Championship. All rights reserved. Government of India.
+        © 2026 Smart Bharat - Digital India Initiative. Empowering citizens through AI-driven civic accessibility. Built for the Global Prompt Engineering Championship. All rights reserved. Government of India.
       </p>
       <div class="flex gap-8 mt-2">
         <a class="text-on-surface-variant text-xs hover:text-primary transition-all font-medium" href="#privacy" id="footer-acc-link">Privacy Policy</a>

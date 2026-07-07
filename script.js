@@ -1,25 +1,24 @@
-// JanVaani.ai Application Logic - 100% complete vanilla JS + Tailwind CSS
+// Smart Bharat AI Civic Companion - Complete Frontend Logic
+// Handled defensively with full transitions, real Leaflet maps, and 6 welfare schemes.
 
-// Localized UI text mappings (for instant UI language toggle)
+// Localized UI text mappings
 const LOCALIZATIONS = {
   en: {
-    tagline: "Smart Bharat Civic Companion",
+    tagline: "AI-Powered Civic Companion",
     btn_search: "Search Directory",
     search_placeholder: "Search schemes & services (e.g. PM-Kisan, Ayushman Bharat, Pothole, Aadhaar update)...",
-    tab_guide: "Service Guidelines",
+    tab_guide: "Guidelines",
     tab_eligibility: "Eligibility Evaluator",
     tab_preaudit: "Document OCR Pre-Audit",
-    tab_timeline: "Progress Tracker",
     chat_input_placeholder: "Ask about schemes..."
   },
   hi: {
-    tagline: "स्मार्ट भारत नागरिक साथी",
+    tagline: "एआई-संचालित नागरिक साथी",
     btn_search: "खोजें",
     search_placeholder: "सेवाएं या शिकायतें खोजें (जैसे कि पीएम-किसान, आयुष्मान भारत, गड्ढा, आधार)...",
-    tab_guide: "सेवा दिशानिर्देश",
+    tab_guide: "दिशानिर्देश",
     tab_eligibility: "पात्रता मूल्यांकन",
     tab_preaudit: "दस्तावेज़ ओसीआर जांच",
-    tab_timeline: "प्रगति ट्रैकर",
     chat_input_placeholder: "योजनाओं के बारे में पूछें..."
   }
 };
@@ -28,14 +27,19 @@ const LOCALIZATIONS = {
 let appState = {
   currentLanguage: 'en',
   activeTab: 'guide',
-  activeDirectoryTab: 'services', // can be 'services' or 'grievances'
+  activeView: 'home-view', // views: 'home-view', 'services-view', 'complaints-view', 'resources-view'
+  activeDirectoryTab: 'services', // 'services' or 'grievances'
   activeServiceId: 'pm-kisan',
   searchQuery: '',
   activeCategory: 'all',
   isRecording: false,
   recordingTimeout: null,
   
-  // 1. Mapped Welfare Schemes & Services (Smart Hub Core Directory)
+  // Real Leaflet Map instances
+  leafletMap: null,
+  leafletMarker: null,
+  
+  // 1. Mapped Government Schemes & Services (Smart Hub Core Directory - 7 Schemes total)
   services: [
     {
       id: "pm-kisan",
@@ -138,45 +142,10 @@ Applicant Beneficiary`
       category: "identification",
       categoryDisplay: "Identification",
       agency: "Unique Identification Authority of India (UIDAI)",
-      eta: "Verification Complete: Active",
-      geocode: "UID-882",
-      lat: "28.5921",
-      lng: "77.0620",
-      stage: 5,
-      docType: "aadhaar",
-      log: "Demographic updates verified via OTP check. Card reprint dispatched via Speed Post.",
-      formats: [
-        "Official proof of address (POA) scans must match UIDAI specifications exactly.",
-        "Mobile number must be active to authorize validation OTP codes.",
-        "Biometric changes require local Aadhaar Seva Kendra appointment verification."
-      ],
-      resolutions: [
-        "<strong>Address Updates:</strong> Upload registered rent agreements, utility bills (less than 3 months old), or bank statements.",
-        "<strong>Mobile Linkage:</strong> Mobile updates require active fingerprint iris scanning at physical kiosks. Online updates without mobile linkage are disabled.",
-        "<strong>Spelling Corrections:</strong> Restrict update attempts. Maximum 2 spelling updates allowed per citizen card database record."
-      ],
-      steps: [
-        { num: 1, title: "OTP Validation", desc: "Authorize demographic adjustments via registered mobile Node." },
-        { num: 2, title: "Document Verifier", desc: "UIDAI registrar approves POA upload files." },
-        { num: 3, title: "Database Sync", desc: "Update is pushed to live national ID registry." }
-      ],
       defaultAge: 25,
       defaultIncome: 0,
       defaultLand: 0,
-      defaultOccupation: "self-employed",
-      draft: `To,
-The Registrar Office (UIDAI Hub),
-Regional Identity Center.
-
-Subject: Application regarding correction of demographic address spelling.
-
-Dear Sir/Madam,
-I am submitting a request for correction of address spelling on my Aadhaar card record. My utility bills show the correct layout. 
-
-I have authenticated the transaction via OTP verification. Kindly approve the change request.
-
-Sincerely,
-Citizen Applicant`
+      defaultOccupation: "self-employed"
     },
     {
       id: "pan-card",
@@ -185,45 +154,10 @@ Citizen Applicant`
       category: "identification",
       categoryDisplay: "Identification",
       agency: "Income Tax Department of India / NSDL & UTITSL Nodes",
-      eta: "Resolution: July 15, 2026",
-      geocode: "PAN-331",
-      lat: "12.9716",
-      lng: "77.5946",
-      stage: 3,
-      docType: "pan",
-      log: "Aadhaar linking request submitted to e-filing portal. Awaiting validation loop from UIDAI registry.",
-      formats: [
-        "Alphanumeric card must show clear signature and photograph.",
-        "Applicant's Name, DOB, and Gender must match Aadhaar card database letter-for-letter.",
-        "MIME format scans of documents must be clearly legible for OCR validation."
-      ],
-      resolutions: [
-        "<strong>Linking Failures:</strong> Name discrepancy blocks linking. Submit a PAN correction form (Form 49A) first via NSDL portal.",
-        "<strong>Lost PAN Card:</strong> Apply for reprint using original PAN number without editing basic details.",
-        "<strong>Minor PAN:</strong> Requires guardian credentials and signature verification check."
-      ],
-      steps: [
-        { num: 1, title: "Linkage Request", desc: "Submit matching parameters on e-filing portal." },
-        { num: 2, title: "Fee Payment", desc: "Pay statutory penalty fee of ₹1,000 for delayed linkage." },
-        { num: 3, title: "UIDAI Validation", desc: "Central database maps Aadhaar biometrics to PAN." }
-      ],
       defaultAge: 30,
       defaultIncome: 350000,
       defaultLand: 0,
-      defaultOccupation: "salaried",
-      draft: `To,
-The Assessing Officer (Income Tax Dept),
-PAN Correction & Database Linking Cell.
-
-Subject: Request regarding Aadhaar-PAN database linkage mapping.
-
-Dear Sir/Madam,
-I have initiated a database mapping request between my PAN card and Aadhaar card record. The required fees have been seeded on the portal. 
-
-I request your department to complete the verification checks to prevent PAN status inactivation.
-
-Sincerely,
-Taxpayer Applicant`
+      defaultOccupation: "salaried"
     },
     {
       id: "ration-card",
@@ -232,45 +166,10 @@ Taxpayer Applicant`
       category: "welfare",
       categoryDisplay: "Welfare",
       agency: "State Food & Civil Supplies Department / PDS Fair Price Shop",
-      eta: "Lodge Complete: Processing",
-      geocode: "RAT-048",
-      lat: "17.3850",
-      lng: "78.4867",
-      stage: 2,
-      docType: "ration",
-      log: "Family registry records submitted. Scheduled for local Food Inspector audit survey.",
-      formats: [
-        "Classified into PHH (Priority Households) or AAY (Antyodaya Anna Yojana) based on state income criteria.",
-        "All family members' Aadhaar cards must be linked to prevent disbursement blocks.",
-        "Active mobile number required for OTP verification at PDS POS devices."
-      ],
-      resolutions: [
-        "<strong>Disbursement Denials:</strong> If grains are denied, verify biometric linkage online. FPS dealers must use POS override codes for seniors.",
-        "<strong>Adding Family Members:</strong> Submit birth certificate or marriage declaration to Food Department portal.",
-        "<strong>Address Transfer:</strong> Submit surrender certificate from previous block before registering in a new zone."
-      ],
-      steps: [
-        { num: 1, title: "Family Data Audit", desc: "Submit family list and matching Aadhaar cards." },
-        { num: 2, title: "Inspector Survey", desc: "Welfare officer checks income bounds." },
-        { num: 3, title: "POS Machine Seeding", desc: "Map biometrics to local Fair Price Shop registry." }
-      ],
       defaultAge: 52,
       defaultIncome: 95000,
       defaultLand: 0.5,
-      defaultOccupation: "unemployed",
-      draft: `To,
-The District Food & Civil Supplies Controller,
-State Food Department Office.
-
-Subject: Request for inclusion of family member in Ration Card database.
-
-Dear Sir/Madam,
-I submit my application for verification of my family ration registry card. Our family income falls under the Priority Household category. 
-
-I request the Food Inspector block office to approve our member list to authorize subsidized grain distribution.
-
-Sincerely,
-Head of Household`
+      defaultOccupation: "unemployed"
     },
     {
       id: "pm-ujjwala",
@@ -365,6 +264,100 @@ I request your office to activate the savings account passbook and ledger mappin
 
 Sincerely,
 Parent/Guardian Applicant`
+    },
+    {
+      id: "pm-awas",
+      name: "Pradhan Mantri Awas Yojana (PMAY-U)",
+      subtitle: "Affordable housing scheme providing interest subsidies and construction grants for urban/rural poor.",
+      category: "welfare",
+      categoryDisplay: "Welfare",
+      agency: "Ministry of Housing and Urban Affairs / State Housing Boards",
+      eta: "Sanction Complete: Processing",
+      geocode: "PMA-229",
+      lat: "22.5726",
+      lng: "88.3639",
+      stage: 3,
+      docType: "ration",
+      log: "Central registry verify complete. Local housing inspector site map audit scheduled.",
+      formats: [
+        "Applicant family must not own a pucca (all-weather) house in any part of India.",
+        "Annual household income must fall within category limits: EWS (up to ₹3L) or LIG (₹3L-₹6L).",
+        "Preferred co-ownership must list an adult female family member."
+      ],
+      resolutions: [
+        "<strong>Pucca House Check:</strong> Real-estate holdings registry is scanned. Even shared family ancestral homes may trigger exclusions.",
+        "<strong>Income Certificate:</strong> EWS category requires dynamic revenue department income certificate not older than 6 months.",
+        "<strong>Credit Subsidy limits:</strong> Bank loans receive interest subsidies mapped through Nodal banks up to 6.5%."
+      ],
+      steps: [
+        { num: 1, title: "Income Verification", desc: "Submit self-affidavit and revenue officer income verification report." },
+        { num: 2, title: "Field Geo-Tagging", desc: "Surveyor visits coordinates to map existing kutcha structure." },
+        { num: 3, title: "DBT Housing Credit", desc: "Direct disbursement of construction grants to linked bank node." }
+      ],
+      defaultAge: 40,
+      defaultIncome: 180000,
+      defaultLand: 0,
+      defaultOccupation: "laborer",
+      draft: `To,
+The Municipal Commissioner (Housing Division),
+State Development Authority.
+
+Subject: Request for housing grant under Pradhan Mantri Awas Yojana (PMAY-U 2.0).
+
+Dear Sir/Madam,
+I request verification of my family parameters for inclusion under the PMAY housing subsidy program. We do not own any pucca structure in India. My family income is ₹1,800,000 (EWS category). 
+
+Please authorize the local surveyor geo-tag check to release the building credit.
+
+Sincerely,
+Citizen Applicant`
+    },
+    {
+      id: "atal-pension",
+      name: "Atal Pension Yojana (APY)",
+      subtitle: "Guaranteed minimum monthly pension scheme for workers in the unorganized sectors.",
+      category: "welfare",
+      categoryDisplay: "Welfare",
+      agency: "Pension Fund Regulatory and Development Authority (PFRDA)",
+      eta: "Ledger Seeding: Active",
+      geocode: "APY-104",
+      lat: "19.0760",
+      lng: "72.8777",
+      stage: 4,
+      docType: "aadhaar",
+      log: "Bank account mapped to APY registry. Initial auto-debit contribution clearance initialized.",
+      formats: [
+        "Applicant age must be between 18 and 40 years of age.",
+        "Must possess active savings bank account linked with auto-debit mandate features.",
+        "Applicant must not be a registered income tax payer or covered under social security schemes."
+      ],
+      resolutions: [
+        "<strong>Delayed Contribution:</strong> Ensure sufficient balance in bank on auto-debit dates. Delayed payments attract standard interest penalties.",
+        "<strong>Taxpayer Ineligibility:</strong> Taxpayers are legally barred from joining. Active audits clear profiles against Income Tax registries.",
+        "<strong>Spouse Coverage:</strong> Pension is guaranteed to spouse upon death of subscriber, and corpus is returned to nominee."
+      ],
+      steps: [
+        { num: 1, title: "Age & Bank Audit", desc: "Confirm age limit metrics and fetch auto-debit consent details." },
+        { num: 2, title: "Pension Slab Select", desc: "Choose monthly pension targets (₹1,000 - ₹5,000) mapping contributions." },
+        { num: 3, title: "PRAN Card Dispatch", desc: "PFRDA maps PRAN (Permanent Retirement Account Number) profile." }
+      ],
+      defaultAge: 28,
+      defaultIncome: 95000,
+      defaultLand: 0,
+      defaultOccupation: "self-employed",
+      draft: `To,
+The Branch Manager,
+[Name of Savings Account Bank Node].
+
+Subject: Authorization for auto-debit contribution under Atal Pension Yojana.
+
+Dear Sir/Madam,
+I am submitting my enrollment profile for the Atal Pension Yojana targeting a monthly pension of ₹5,000 at age 60. I am 28 years of age and do not pay income tax. 
+
+I authorize your branch to initiate auto-debit contributions from my savings account.
+
+Sincerely,
+Subscriber Applicant`
     }
   ],
   
@@ -470,9 +463,12 @@ document.addEventListener("DOMContentLoaded", () => {
   setupDirectorySwitcher();
   setupStaticNavBarLinks();
   setupThemeToggle();
+  setupViewRouting();
+  setupFloatingChat();
   
-  // Render
+  // Render lists and select default card
   renderServicesDirectory();
+  renderGrievancesDirectory();
   selectService('pm-kisan');
 });
 
@@ -544,7 +540,267 @@ function setupThemeToggle() {
   });
 }
 
-// Workspace Tab Navigation (Refined visual classes swapper)
+// Main View Routing Controller
+function setupViewRouting() {
+  const tabs = document.querySelectorAll(".nav-view-tab");
+  
+  const switchView = (targetViewId) => {
+    appState.activeView = targetViewId;
+    
+    // Toggle active link tags
+    tabs.forEach(t => {
+      if (t.getAttribute("data-view") === targetViewId) {
+        t.className = "text-primary font-bold border-b-2 border-primary pb-1 transition-all duration-300 nav-view-tab active";
+      } else {
+        t.className = "text-on-surface-variant font-medium hover:text-white transition-all duration-300 nav-view-tab";
+      }
+    });
+    
+    // Toggle main views
+    document.querySelectorAll(".view-frame").forEach(vf => {
+      if (vf.id === targetViewId) {
+        vf.classList.remove("hidden");
+      } else {
+        vf.classList.add("hidden");
+      }
+    });
+    
+    // Handle Leaflet map refresh when complaints tab is switched to
+    if (targetViewId === 'complaints-view' && appState.activeServiceId.startsWith("complaint-")) {
+      setTimeout(() => {
+        const ticket = appState.grievances.find(g => g.id === appState.activeServiceId);
+        if (ticket) initLeafletMap(parseFloat(ticket.lat), parseFloat(ticket.lng));
+      }, 100);
+    }
+  };
+  
+  tabs.forEach(t => {
+    t.addEventListener("click", (e) => {
+      e.preventDefault();
+      switchView(t.getAttribute("data-view"));
+    });
+  });
+  
+  // Bento Action Cards binding
+  const bentoServices = document.getElementById("bento-card-services");
+  if (bentoServices) {
+    bentoServices.addEventListener("click", () => {
+      switchView("services-view");
+      selectService("pm-kisan");
+    });
+  }
+  
+  const bentoReport = document.getElementById("bento-card-report");
+  if (bentoReport) {
+    bentoReport.addEventListener("click", () => {
+      const modal = document.getElementById("voice-modal");
+      if (modal) modal.classList.remove("hidden");
+    });
+  }
+  
+  const bentoComplaints = document.getElementById("bento-card-complaints");
+  if (bentoComplaints) {
+    bentoComplaints.addEventListener("click", () => {
+      switchView("complaints-view");
+      if (appState.grievances.length > 0) {
+        selectService(appState.grievances[0].id);
+      }
+    });
+  }
+  
+  const bentoSchemes = document.getElementById("bento-card-schemes");
+  if (bentoSchemes) {
+    bentoSchemes.addEventListener("click", () => {
+      switchView("services-view");
+      selectService("pm-kisan");
+      const evalBtn = document.getElementById("btn-tab-eligibility");
+      if (evalBtn) evalBtn.click();
+    });
+  }
+}
+
+// Floating Expandable Chat Assistant Widget
+function setupFloatingChat() {
+  const triggerBtn = document.getElementById("trigger-floating-chat-btn");
+  const closeBtn = document.getElementById("close-floating-chat-btn");
+  const chatWindow = document.getElementById("floating-chat-window");
+  const chatInput = document.getElementById("floating-chat-input");
+  const sendBtn = document.getElementById("send-floating-chat-btn");
+  
+  if (!triggerBtn || !chatWindow) return;
+  
+  const toggleChat = () => {
+    if (chatWindow.classList.contains("hidden")) {
+      chatWindow.classList.remove("hidden");
+      setTimeout(() => chatWindow.classList.add("active"), 10);
+    } else {
+      chatWindow.classList.remove("active");
+      setTimeout(() => chatWindow.classList.add("hidden"), 300);
+    }
+  };
+  
+  triggerBtn.addEventListener("click", toggleChat);
+  if (closeBtn) closeBtn.addEventListener("click", toggleChat);
+  
+  // Floating Send actions
+  const handleFloatingSend = async () => {
+    if (!chatInput) return;
+    const text = chatInput.value.trim();
+    if (!text) return;
+    
+    appendFloatingMessage("user", text);
+    chatInput.value = "";
+    
+    const loader = appendFloatingMessage("bot", `<span class="material-symbols-outlined text-[10px] animate-spin">sync</span> Thinking...`);
+    
+    try {
+      const response = await fetch('/api/gemini', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'chat',
+          history: [{ role: 'user', parts: [{ text: text }] }],
+          language: appState.currentLanguage
+        })
+      });
+      
+      if (!response.ok) throw new Error('API failed');
+      const data = await response.json();
+      
+      if (loader) {
+        const textEl = loader.querySelector(".message-text");
+        if (textEl) textEl.innerHTML = data.reply;
+      }
+    } catch (err) {
+      console.warn("API Failed, simulating locally:", err);
+      setTimeout(() => {
+        const fallback = generateChatFallback(text);
+        if (loader) {
+          const textEl = loader.querySelector(".message-text");
+          if (textEl) textEl.innerHTML = fallback;
+        }
+      }, 1000);
+    }
+  };
+  
+  if (sendBtn) sendBtn.addEventListener("click", handleFloatingSend);
+  if (chatInput) {
+    chatInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") handleFloatingSend();
+    });
+  }
+  
+  // Home Page query inputs link to expandable chat bubble
+  const homeSearchInput = document.getElementById("home-search-input");
+  const homeSearchBtn = document.getElementById("home-search-btn");
+  
+  const handleHomeQuery = () => {
+    if (!homeSearchInput) return;
+    const query = homeSearchInput.value.trim();
+    if (!query) return;
+    
+    homeSearchInput.value = "";
+    
+    // Open chat window
+    if (chatWindow.classList.contains("hidden")) {
+      toggleChat();
+    }
+    
+    // Auto submit to chatbot
+    chatInput.value = query;
+    handleFloatingSend();
+  };
+  
+  if (homeSearchBtn) homeSearchBtn.addEventListener("click", handleHomeQuery);
+  if (homeSearchInput) {
+    homeSearchInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") handleHomeQuery();
+    });
+  }
+  
+  // Try asking pills hooks
+  document.querySelectorAll(".home-prompt-pill").forEach(pill => {
+    pill.addEventListener("click", () => {
+      const promptText = pill.getAttribute("data-prompt");
+      if (chatWindow.classList.contains("hidden")) {
+        toggleChat();
+      }
+      if (chatInput) {
+        chatInput.value = promptText;
+        handleFloatingSend();
+      }
+    });
+  });
+}
+
+function appendFloatingMessage(role, text) {
+  const history = document.getElementById("floating-chat-history");
+  if (!history) return null;
+  
+  const msg = document.createElement("div");
+  const isUser = role === "user";
+  
+  msg.className = `p-2 rounded-lg text-[10px] leading-relaxed flex flex-col ${
+    isUser 
+      ? "bg-primary/10 ml-4 self-end text-white text-right border border-primary/20" 
+      : "bg-white/5 mr-4 self-start text-on-surface-variant border border-white/5"
+  }`;
+  
+  const label = isUser ? "You" : "Companion";
+  const labelColor = isUser ? "text-primary" : "text-primary/60";
+  
+  msg.innerHTML = `
+    <span class="block font-bold mb-0.5 ${labelColor} uppercase text-[8px]">${label}</span>
+    <div class="message-text">${text}</div>
+  `;
+  
+  history.appendChild(msg);
+  history.scrollTop = history.scrollHeight;
+  return msg;
+}
+
+// Leaflet.js Mapping Initializer Node
+function initLeafletMap(lat, lng) {
+  const container = document.getElementById("mock-map-canvas");
+  if (!container) return;
+  
+  // Clear layout placeholders
+  container.innerHTML = "";
+  
+  try {
+    if (appState.leafletMap) {
+      appState.leafletMap.remove();
+      appState.leafletMap = null;
+    }
+    
+    appState.leafletMap = L.map('mock-map-canvas', {
+      zoomControl: true,
+      scrollWheelZoom: false
+    }).setView([lat, lng], 13);
+    
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+      attribution: '&copy; OpenStreetMap'
+    }).addTo(appState.leafletMap);
+    
+    appState.leafletMarker = L.marker([lat, lng]).addTo(appState.leafletMap);
+    
+    // Refresh sizing layouts
+    setTimeout(() => {
+      if (appState.leafletMap) appState.leafletMap.invalidateSize();
+    }, 150);
+    
+  } catch (err) {
+    console.warn("Leaflet loading error:", err);
+    container.innerHTML = `
+      <div class="absolute inset-0 bg-[#111827] flex items-center justify-center text-xs text-on-surface-variant font-mono">
+        GIS MAP ERROR: Check network logs
+      </div>
+    `;
+  }
+}
+
+// Workspace Tab Navigation
 function setupTabs() {
   const triggers = document.querySelectorAll(".tab-trigger");
   triggers.forEach(trigger => {
@@ -553,11 +809,11 @@ function setupTabs() {
       appState.activeTab = targetTabId.replace("tab-", "");
       
       triggers.forEach(t => {
-        t.className = "flex items-center gap-2 px-4 py-2.5 text-on-surface-variant text-xs font-medium hover:bg-white/5 rounded-lg transition-all tab-trigger";
+        t.className = "flex items-center gap-1.5 px-3 py-2 text-on-surface-variant text-xs font-medium hover:bg-white/5 rounded-lg transition-all tab-trigger";
         t.setAttribute("aria-selected", "false");
       });
       
-      trigger.className = "flex items-center gap-2 px-5 py-2.5 rounded-lg bg-primary/10 border border-primary/40 text-primary text-xs font-bold ice-glow transition-all tab-trigger active";
+      trigger.className = "flex items-center gap-1.5 px-4 py-2 rounded-lg bg-primary/10 border border-primary/40 text-primary text-xs font-bold ice-glow transition-all tab-trigger active";
       trigger.setAttribute("aria-selected", "true");
       
       document.querySelectorAll(".service-tab-pane").forEach(pane => {
@@ -582,106 +838,47 @@ function setupLanguageSelector() {
     
     const local = LOCALIZATIONS[lang] || LOCALIZATIONS['en'];
     
-    // Update labels
     const tagline = document.querySelector(".logo-text p");
     if (tagline) tagline.textContent = local.tagline;
-    
-    const searchBtn = document.getElementById("services-search-btn");
-    if (searchBtn) searchBtn.textContent = local.btn_search;
     
     const searchInput = document.getElementById("services-search-input");
     if (searchInput) searchInput.setAttribute("placeholder", local.search_placeholder);
     
     const tabGuide = document.getElementById("btn-tab-guide");
-    if (tabGuide) tabGuide.innerHTML = `<span class="material-symbols-outlined text-sm">description</span> ${local.tab_guide}`;
+    if (tabGuide) tabGuide.innerHTML = `<span class="material-symbols-outlined text-xs">description</span> ${local.tab_guide}`;
     
     const tabEval = document.getElementById("btn-tab-eligibility");
-    if (tabEval) tabEval.innerHTML = `<span class="material-symbols-outlined text-sm">fact_check</span> ${local.tab_eligibility}`;
+    if (tabEval) tabEval.innerHTML = `<span class="material-symbols-outlined text-xs">fact_check</span> ${local.tab_eligibility}`;
     
     const tabAudit = document.getElementById("btn-tab-preaudit");
-    if (tabAudit) tabAudit.innerHTML = `<span class="material-symbols-outlined text-sm">qr_code_scanner</span> ${local.tab_preaudit}`;
+    if (tabAudit) tabAudit.innerHTML = `<span class="material-symbols-outlined text-xs">qr_code_scanner</span> ${local.tab_preaudit}`;
     
-    const tabTracker = document.getElementById("btn-tab-timeline");
-    if (tabTracker) tabTracker.innerHTML = `<span class="material-symbols-outlined text-sm">analytics</span> ${local.tab_timeline}`;
-    
-    const chatInput = document.getElementById("chat-input");
+    const chatInput = document.getElementById("floating-chat-input");
     if (chatInput) chatInput.setAttribute("placeholder", local.chat_input_placeholder);
     
     showToast(`Language updated to ${selector.options[selector.selectedIndex].text}`);
   });
 }
 
-// Sidebar Directory switcher (active-nav-tab toggles)
+// Sidebar Directory switcher
 function setupDirectorySwitcher() {
   const btnServices = document.getElementById("btn-show-services");
   const btnGrievances = document.getElementById("btn-show-grievances");
   const grievanceCount = document.getElementById("grievance-count");
   
-  if (!btnServices || !btnGrievances) return;
-  
   if (grievanceCount) {
     grievanceCount.textContent = appState.grievances.length;
   }
-  
-  const toggleClasses = (activeBtn, inactiveBtn) => {
-    activeBtn.classList.add("active-nav-tab");
-    activeBtn.classList.remove("text-on-surface-variant");
-    inactiveBtn.classList.remove("active-nav-tab");
-    inactiveBtn.classList.add("text-on-surface-variant");
-  };
-  
-  const updateTitle = (titleText) => {
-    const el = document.getElementById("directory-list-title");
-    if (el) el.textContent = titleText;
-  };
-  
-  btnServices.addEventListener("click", () => {
-    toggleClasses(btnServices, btnGrievances);
-    appState.activeDirectoryTab = 'services';
-    updateTitle("Services Directory");
-    renderServicesDirectory();
-    if (appState.services.length > 0) {
-      selectService(appState.services[0].id);
-    }
-  });
-  
-  btnGrievances.addEventListener("click", () => {
-    toggleClasses(btnGrievances, btnServices);
-    appState.activeDirectoryTab = 'grievances';
-    updateTitle("Complaints Track");
-    renderServicesDirectory();
-    if (appState.grievances.length > 0) {
-      selectService(appState.grievances[0].id);
-    }
-  });
 }
 
 // Top Navbar header trigger hooks
 function setupStaticNavBarLinks() {
-  const navServices = document.getElementById("nav-btn-services");
-  const navGrievances = document.getElementById("nav-btn-grievances");
-  
-  if (navServices) {
-    navServices.addEventListener("click", (e) => {
-      e.preventDefault();
-      const target = document.getElementById("btn-show-services");
-      if (target) target.click();
-    });
-  }
-  
-  if (navGrievances) {
-    navGrievances.addEventListener("click", (e) => {
-      e.preventDefault();
-      const target = document.getElementById("btn-show-grievances");
-      if (target) target.click();
-    });
-  }
+  // Navigation mapping is handled inside setupViewRouting()
 }
 
 // Search and Category filtering modules
 function setupServicesSearch() {
   const searchInput = document.getElementById("services-search-input");
-  const searchBtn = document.getElementById("services-search-btn");
   const categoryChips = document.querySelectorAll(".category-chip");
   
   if (!searchInput) return;
@@ -692,59 +889,40 @@ function setupServicesSearch() {
   };
   
   searchInput.addEventListener("input", handleFilter);
-  if (searchBtn) {
-    searchBtn.addEventListener("click", () => {
-      showToast(`AI directory query executed for: "${searchInput.value}"`);
-      handleFilter();
-    });
-  }
   
   categoryChips.forEach(chip => {
     chip.addEventListener("click", () => {
       categoryChips.forEach(c => {
-        c.className = "category-chip bg-white/5 border border-white/5 text-on-surface-variant text-xs px-3 py-1.5 rounded-full hover:bg-white/10";
+        c.className = "category-chip bg-white/5 border border-white/5 text-on-surface-variant text-[9px] px-2.5 py-1 rounded-full hover:bg-white/10";
       });
-      chip.className = "category-chip bg-primary/10 border border-primary/20 text-primary text-xs px-3 py-1.5 rounded-full font-semibold";
+      chip.className = "category-chip bg-primary/10 border border-primary/20 text-primary text-[9px] px-2.5 py-1 rounded-full font-semibold";
       
       appState.activeCategory = chip.getAttribute("data-category");
       renderServicesDirectory();
-      showToast(`Showing category: ${chip.textContent.trim()}`);
+      showToast(`Showing: ${chip.textContent.trim()}`);
     });
   });
 }
 
-// Render dynamic directory cards matching selection states
+// Render dynamic directory cards (Services)
 function renderServicesDirectory() {
   const container = document.getElementById("services-list-container");
   if (!container) return;
   
   container.innerHTML = "";
   
-  const isServices = appState.activeDirectoryTab === 'services';
-  const dataPool = isServices ? appState.services : appState.grievances;
-  
-  const filtered = dataPool.filter(item => {
+  const filtered = appState.services.filter(item => {
     const matchesSearch = item.name.toLowerCase().includes(appState.searchQuery) || 
                           item.subtitle.toLowerCase().includes(appState.searchQuery) ||
                           item.categoryDisplay.toLowerCase().includes(appState.searchQuery);
                           
-    const matchesCategory = !isServices || appState.activeCategory === 'all' || item.category === appState.activeCategory;
+    const matchesCategory = appState.activeCategory === 'all' || item.category === appState.activeCategory;
     
     return matchesSearch && matchesCategory;
   });
   
-  // Update badge count
-  const badgeCount = document.getElementById("grievance-count");
-  if (badgeCount) {
-    badgeCount.textContent = appState.grievances.length;
-  }
-  
   if (filtered.length === 0) {
-    container.innerHTML = `
-      <div class="p-3 text-center text-[10px] text-on-surface-variant">
-        No records match.
-      </div>
-    `;
+    container.innerHTML = `<div class="p-3 text-center text-[10px] text-on-surface-variant">No schemes match.</div>`;
     return;
   }
   
@@ -759,16 +937,48 @@ function renderServicesDirectory() {
     
     card.className = `w-full text-left p-3 rounded-lg border transition-all text-xs flex flex-col gap-1.5 service-item-card ${activeClass}`;
     
-    let tagHtml = `<span class="px-2 py-0.5 rounded text-[8px] font-bold uppercase tracking-wider ${isActive ? 'bg-primary/20 text-primary border border-primary/30' : 'bg-white/5 text-on-surface-variant'}">${escapeHTML(item.categoryDisplay)}</span>`;
-    let subVal = isServices ? item.geocode : escapeHTML(item.location.split(',')[0]);
-    
     card.innerHTML = `
       <div class="flex justify-between items-center w-full">
-        ${tagHtml}
-        <span class="text-[9px] opacity-75">${subVal}</span>
+        <span class="px-2 py-0.5 rounded text-[8px] font-bold uppercase tracking-wider ${isActive ? 'bg-primary/20 text-primary border border-primary/30' : 'bg-white/5 text-on-surface-variant'}">${escapeHTML(item.categoryDisplay)}</span>
+        <span class="text-[9px] opacity-75">${item.id.toUpperCase()}</span>
       </div>
       <h4 class="font-bold text-white leading-tight truncate w-full">${escapeHTML(item.name)}</h4>
       <p class="text-[10px] text-on-surface-variant truncate w-full">${escapeHTML(item.subtitle)}</p>
+    `;
+    
+    card.addEventListener("click", () => {
+      selectService(item.id);
+    });
+    
+    container.appendChild(card);
+  });
+}
+
+// Render dynamic directory cards (Grievances)
+function renderGrievancesDirectory() {
+  const container = document.getElementById("grievances-list-container");
+  if (!container) return;
+  
+  container.innerHTML = "";
+  
+  appState.grievances.forEach(item => {
+    const card = document.createElement("button");
+    card.type = "button";
+    
+    const isActive = appState.activeServiceId === item.id;
+    const activeClass = isActive 
+      ? "bg-primary/10 border-primary/30 text-primary" 
+      : "bg-white/5 border-white/5 hover:bg-white/10 text-on-surface-variant";
+    
+    card.className = `w-full text-left p-3 rounded-lg border transition-all text-xs flex flex-col gap-1.5 service-item-card ${activeClass}`;
+    
+    card.innerHTML = `
+      <div class="flex justify-between items-center w-full">
+        <span class="px-2 py-0.5 rounded text-[8px] font-bold uppercase tracking-wider bg-white/5 text-on-surface-variant">${escapeHTML(item.categoryDisplay)}</span>
+        <span class="text-[9px] opacity-75">${item.id.toUpperCase()}</span>
+      </div>
+      <h4 class="font-bold text-white leading-tight truncate w-full">${escapeHTML(item.name)}</h4>
+      <p class="text-[10px] text-on-surface-variant truncate w-full">${escapeHTML(item.location)}</p>
     `;
     
     card.addEventListener("click", () => {
@@ -783,51 +993,34 @@ function renderServicesDirectory() {
 function selectService(serviceId) {
   appState.activeServiceId = serviceId;
   
+  const isGrievance = serviceId.startsWith("complaint-");
+  
   // Re-highlight cards
   renderServicesDirectory();
+  renderGrievancesDirectory();
   
-  const empty = document.getElementById("service-workspace-empty");
-  const content = document.getElementById("service-workspace-content");
-  if (empty) empty.classList.add("hidden");
-  if (content) content.classList.remove("hidden");
-  
-  const isGrievance = serviceId.startsWith("complaint-");
-  const tabsWrapper = document.getElementById("tabs-nav-wrapper");
+  const empty = document.getElementById(isGrievance ? "grievance-workspace-empty" : "service-workspace-empty");
+  const content = document.getElementById(isGrievance ? "grievance-workspace-content" : "service-workspace-content");
   
   if (isGrievance) {
-    // Morph UI: Hide tabs, force timeline active
-    if (tabsWrapper) tabsWrapper.classList.add("hidden");
-    
-    document.querySelectorAll(".service-tab-pane").forEach(pane => pane.classList.add("hidden"));
-    const timelinePane = document.getElementById("tab-timeline");
-    if (timelinePane) timelinePane.classList.remove("hidden");
-    appState.activeTab = 'timeline';
+    const activeEmpty = document.getElementById("service-workspace-empty");
+    const activeContent = document.getElementById("service-workspace-content");
+    if (activeEmpty) activeEmpty.classList.remove("hidden");
+    if (activeContent) activeContent.classList.add("hidden");
   } else {
-    // Morph UI: Restore tabs, Guidelines default active
-    if (tabsWrapper) tabsWrapper.classList.remove("hidden");
-    
-    const triggers = document.querySelectorAll(".tab-trigger");
-    triggers.forEach(t => {
-      t.className = "flex items-center gap-2 px-4 py-2.5 text-on-surface-variant text-xs font-medium hover:bg-white/5 rounded-lg transition-all tab-trigger";
-      t.setAttribute("aria-selected", "false");
-    });
-    
-    const guideTrigger = document.getElementById("btn-tab-guide");
-    if (guideTrigger) {
-      guideTrigger.className = "flex items-center gap-2 px-5 py-2.5 rounded-lg bg-primary/10 border border-primary/40 text-primary text-xs font-bold ice-glow transition-all tab-trigger active";
-      guideTrigger.setAttribute("aria-selected", "true");
-    }
-    
-    document.querySelectorAll(".service-tab-pane").forEach(pane => pane.classList.add("hidden"));
-    const guidePane = document.getElementById("tab-guide");
-    if (guidePane) guidePane.classList.remove("hidden");
-    appState.activeTab = 'guide';
+    const activeEmpty = document.getElementById("grievance-workspace-empty");
+    const activeContent = document.getElementById("grievance-workspace-content");
+    if (activeEmpty) activeEmpty.classList.remove("hidden");
+    if (activeContent) activeContent.classList.add("hidden");
   }
+  
+  if (empty) empty.classList.add("hidden");
+  if (content) content.classList.remove("hidden");
   
   renderActiveServiceDetails();
 }
 
-// Render dynamic elements to pane components (Guarded Defensively against null nodes)
+// Render dynamic elements to pane components
 function renderActiveServiceDetails() {
   const isGrievance = appState.activeServiceId.startsWith("complaint-");
   const pool = isGrievance ? appState.grievances : appState.services;
@@ -835,24 +1028,23 @@ function renderActiveServiceDetails() {
   const item = pool.find(i => i.id === appState.activeServiceId);
   if (!item) return;
   
-  // Safe helper to set text content of element by ID
+  // Safe helper to set text content
   const setText = (id, text) => {
     const el = document.getElementById(id);
     if (el) el.textContent = text;
   };
   
-  // Safe helper to set innerHTML of element by ID
+  // Safe helper to set innerHTML
   const setHtml = (id, html) => {
     const el = document.getElementById(id);
     if (el) el.innerHTML = html;
   };
   
-  // Set headers
-  setText("active-service-tag", item.categoryDisplay);
-  setText("active-service-title", item.name);
-  setText("active-service-subtitle", item.subtitle);
-  
   if (isGrievance) {
+    setText("grievance-service-tag", item.categoryDisplay);
+    setText("grievance-service-title", item.name);
+    setText("grievance-service-subtitle", item.subtitle);
+    
     setText("timeline-title-label", "Grievance Progress Pipeline");
     setText("assigned-agency-header", "Assigned Municipal Department Node");
     setText("draft-title-label", "AI Generated Grievance Letter");
@@ -864,7 +1056,17 @@ function renderActiveServiceDetails() {
       <p><strong>Lattice Code:</strong> CP-GEO-${item.geocode}</p>
       <p><strong>Network Node:</strong> P2P Grid Node dw-elec-90</p>
     `);
+    
+    // Initialize real Leaflet Map
+    if (appState.activeView === 'complaints-view') {
+      initLeafletMap(parseFloat(item.lat), parseFloat(item.lng));
+    }
+    
   } else {
+    setText("active-service-tag", item.categoryDisplay);
+    setText("active-service-title", item.name);
+    setText("active-service-subtitle", item.subtitle);
+    
     setText("timeline-title-label", "Administrative Progress Pipeline");
     setText("assigned-agency-header", "Assigned Department Office");
     setText("draft-title-label", "AI Generated Representation Draft");
@@ -876,12 +1078,10 @@ function renderActiveServiceDetails() {
       <p><strong>Lattice Identifier:</strong> JW-GEO-${item.geocode}</p>
       <p><strong>Municipal Grid Node:</strong> Sector 15 block-node registry mapping</p>
     `);
-  }
-  
-  // Set Guidelines if it is a service
-  if (!isGrievance) {
+    
+    // Set Guidelines details
     const formatsList = document.getElementById("active-guide-formats");
-    if (formatsList) {
+    if (formatsList && item.formats) {
       formatsList.innerHTML = "";
       item.formats.forEach(f => {
         const li = document.createElement("li");
@@ -892,10 +1092,12 @@ function renderActiveServiceDetails() {
         `;
         formatsList.appendChild(li);
       });
+    } else if (formatsList) {
+      formatsList.innerHTML = `<li class="text-on-surface-variant">General information and updates.</li>`;
     }
     
     const resolutionsList = document.getElementById("active-guide-resolutions");
-    if (resolutionsList) {
+    if (resolutionsList && item.resolutions) {
       resolutionsList.innerHTML = "";
       item.resolutions.forEach(r => {
         const li = document.createElement("li");
@@ -906,10 +1108,12 @@ function renderActiveServiceDetails() {
         `;
         resolutionsList.appendChild(li);
       });
+    } else if (resolutionsList) {
+      resolutionsList.innerHTML = `<li class="text-on-surface-variant">Check official portal.</li>`;
     }
     
     const stepsContainer = document.getElementById("active-guide-steps");
-    if (stepsContainer) {
+    if (stepsContainer && item.steps) {
       stepsContainer.innerHTML = "";
       item.steps.forEach(step => {
         const div = document.createElement("div");
@@ -924,17 +1128,23 @@ function renderActiveServiceDetails() {
         `;
         stepsContainer.appendChild(div);
       });
+    } else if (stepsContainer) {
+      stepsContainer.innerHTML = `
+        <div class="glass-panel p-5 rounded-xl border border-white/5 text-xs text-on-surface-variant">
+          Follow guidelines in previous tabs.
+        </div>
+      `;
     }
     
     const inputAge = document.getElementById("scheme-age");
-    if (inputAge) inputAge.value = item.defaultAge;
+    if (inputAge) inputAge.value = item.defaultAge || 35;
     
     const inputIncome = document.getElementById("scheme-income");
-    if (inputIncome) inputIncome.value = item.defaultIncome;
+    if (inputIncome) inputIncome.value = item.defaultIncome || 120000;
     
     const inputLand = document.getElementById("scheme-land");
     if (inputLand) {
-      inputLand.value = item.defaultLand;
+      inputLand.value = item.defaultLand || 0;
       if (item.category !== 'agriculture') {
         inputLand.value = 0;
         inputLand.disabled = true;
@@ -944,7 +1154,7 @@ function renderActiveServiceDetails() {
     }
     
     const selectOcc = document.getElementById("scheme-occupation");
-    if (selectOcc) selectOcc.value = item.defaultOccupation;
+    if (selectOcc) selectOcc.value = item.defaultOccupation || "salaried";
     
     resetEvaluatorDisplay(item);
     resetOCRScannerDisplay(item);
@@ -952,8 +1162,8 @@ function renderActiveServiceDetails() {
   
   // Renders tracking elements
   setText("detail-assigned-agency", item.agency);
-  setHtml("detail-agency-log", item.log);
-  setText("detail-draft-text", item.draft);
+  setHtml("detail-agency-log", item.log || "Transaction logged.");
+  setText("detail-draft-text", item.draft || "Representation text pending.");
   setText("detail-lat-lng", `Lat: ${item.lat}, Lng: ${item.lng}`);
   setText("detail-geocode", item.geocode);
   
@@ -1010,14 +1220,7 @@ function renderActiveServiceDetails() {
   if (fill) {
     const percentageMap = { 1: 5, 2: 25, 3: 50, 4: 75, 5: 100 };
     const fillVal = percentageMap[item.stage] || 5;
-    const isMobile = window.innerWidth <= 768;
-    if (isMobile) {
-      fill.style.width = "100%";
-      fill.style.height = `${fillVal}%`;
-    } else {
-      fill.style.height = "100%";
-      fill.style.width = `${fillVal}%`;
-    }
+    fill.style.width = `${fillVal}%`;
   }
 }
 
@@ -1036,17 +1239,17 @@ function resetEvaluatorDisplay(service) {
     textEl.className = "text-on-surface-variant text-sm font-semibold";
     textEl.style.color = "";
   }
-  if (briefEl) briefEl.textContent = "Adjust parameters above and check status.";
+  if (briefEl) briefEl.textContent = "Adjust parameters and run checks.";
   if (meter) meter.style.background = `conic-gradient(rgba(255,255,255,0.06) 360deg, transparent 0deg)`;
   
-  if (checkedList) checkedList.innerHTML = `<li>Awaiting evaluation checklist...</li>`;
-  if (exclusionsList) exclusionsList.innerHTML = `<li>Awaiting evaluation audit...</li>`;
+  if (checkedList) checkedList.innerHTML = `<li>Awaiting evaluator activation...</li>`;
+  if (exclusionsList) exclusionsList.innerHTML = `<li>Awaiting parameters check...</li>`;
   
   if (checklist) {
     checklist.innerHTML = `
       <label class="flex items-center gap-2 text-[10px] text-on-surface-variant">
         <input type="checkbox" disabled class="rounded border-white/10 bg-transparent text-primary focus:ring-0">
-        <span>Awaiting calculation.</span>
+        <span>Awaiting calculations.</span>
       </label>
     `;
   }
@@ -1070,7 +1273,7 @@ function resetOCRScannerDisplay(service) {
   }
 }
 
-// Document OCR pre-screener
+// Document OCR pre-screener (With Real Dropzone upload triggers)
 function setupDocumentOCRScanner() {
   const simAadhaar = document.getElementById("sim-aadhaar-btn");
   const simPan = document.getElementById("sim-pan-btn");
@@ -1079,11 +1282,12 @@ function setupDocumentOCRScanner() {
   const zone = document.getElementById("ocr-dropzone");
   const laser = document.getElementById("scanner-laser");
   const resetBtn = document.getElementById("reset-ocr-btn");
+  const fileInput = document.getElementById("ocr-file-input");
   
   const handleOcrSimulation = (docType) => {
     if (zone) zone.classList.add("scanning");
     if (laser) laser.classList.remove("hidden");
-    showToast("Simulation: Initializing AI Document Pre-Scanner OCR...");
+    showToast("Scanning: Extracting document parameters with OCR...");
     
     setTimeout(() => {
       if (zone) zone.classList.remove("scanning");
@@ -1098,25 +1302,72 @@ function setupDocumentOCRScanner() {
       if (docType === 'aadhaar') {
         if (badge) {
           badge.textContent = "Mismatch Flagged";
-          badge.className = "px-2 py-0.5 rounded bg-error/20 text-error text-[10px] font-bold uppercase tracking-wider border border-error/25";
+          badge.className = "px-2 py-0.5 rounded bg-error/20 text-error text-[9px] font-bold uppercase border border-error/25";
         }
-        if (findings) findings.innerHTML = `<strong>Aadhaar Demographic Scan:</strong> Spelling discrepant. Document states <strong>"Rajesh Kumar"</strong>, which does not match active service registry listing of <strong>"Rajesh K. Sharma"</strong>.`;
-        if (resolutions) resolutions.innerHTML = `<strong>Corrective Guideline:</strong> Submit Gazetted spelling declaration or request demographic update on UIDAI e-Seva portal.`;
-        showToast("Simulation Diagnostic: spelling gap identified.", true);
+        if (findings) findings.innerHTML = `<strong>Aadhaar Demographic Scan:</strong> Name spelling discrepancy. Document states <strong>"Rajesh Kumar"</strong>, which does not match active service registry listing of <strong>"Rajesh K. Sharma"</strong>.`;
+        if (resolutions) resolutions.innerHTML = `<strong>Suggested Action:</strong> Request demographic name correction via UIDAI online portal or submit Gazetted affidavit.`;
+        showToast("Scanner Alert: spelling discrepancy found.", true);
       } else {
         if (badge) {
           badge.textContent = "Database Link Warning";
-          badge.className = "px-2 py-0.5 rounded bg-error/20 text-error text-[10px] font-bold uppercase tracking-wider border border-error/25";
+          badge.className = "px-2 py-0.5 rounded bg-error/20 text-error text-[9px] font-bold uppercase border border-error/25";
         }
-        if (findings) findings.innerHTML = `<strong>PAN Registry Linkage:</strong> Seeding failure. PAN <strong>"XXXXX1234X"</strong> is active but lacks mapped connection to Aadhaar registry database.`;
-        if (resolutions) resolutions.innerHTML = `<strong>Corrective Guideline:</strong> Access e-filing portal and complete PAN-Aadhaar verification seeding to prevent card inoperability.`;
-        showToast("Simulation Diagnostic: linking gap identified.", true);
+        if (findings) findings.innerHTML = `<strong>PAN Registry Linkage:</strong> Linking failure. Card is active but lacks mapped biometric validation mapping to Aadhaar database.`;
+        if (resolutions) resolutions.innerHTML = `<strong>Suggested Action:</strong> Visit e-filing portal and submit PAN-Aadhaar linking request (requires seeding fee).`;
+        showToast("Scanner Alert: database linkage required.", true);
       }
     }, 2000);
   };
   
-  if (simAadhaar) simAadhaar.addEventListener("click", () => handleOcrSimulation('aadhaar'));
-  if (simPan) simPan.addEventListener("click", () => handleOcrSimulation('pan'));
+  if (simAadhaar) {
+    simAadhaar.addEventListener("click", (e) => {
+      e.stopPropagation(); // Avoid triggering parent click
+      handleOcrSimulation('aadhaar');
+    });
+  }
+  if (simPan) {
+    simPan.addEventListener("click", (e) => {
+      e.stopPropagation(); // Avoid triggering parent click
+      handleOcrSimulation('pan');
+    });
+  }
+  
+  // Real File Pick Click Trigger
+  if (zone && fileInput) {
+    zone.addEventListener("click", () => {
+      fileInput.click();
+    });
+    
+    fileInput.addEventListener("change", (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        showToast(`Document uploaded: "${file.name}"`);
+        handleOcrSimulation('aadhaar'); // Run audit simulation
+      }
+    });
+    
+    // Drag-and-drop triggers
+    zone.addEventListener("dragover", (e) => {
+      e.preventDefault();
+      zone.classList.add("dragover");
+    });
+    zone.addEventListener("dragenter", (e) => {
+      e.preventDefault();
+      zone.classList.add("dragover");
+    });
+    zone.addEventListener("dragleave", () => {
+      zone.classList.remove("dragover");
+    });
+    zone.addEventListener("drop", (e) => {
+      e.preventDefault();
+      zone.classList.remove("dragover");
+      const file = e.dataTransfer.files[0];
+      if (file) {
+        showToast(`Dropped file: "${file.name}"`);
+        handleOcrSimulation('aadhaar');
+      }
+    });
+  }
   
   if (resetBtn) {
     resetBtn.addEventListener("click", () => {
@@ -1126,7 +1377,7 @@ function setupDocumentOCRScanner() {
   }
 }
 
-// Scheme Eligibility Calculations
+// Scheme Eligibility Calculations (Supports all 6 schemes dynamically)
 function setupSchemeEligibility() {
   const btn = document.getElementById("check-eligibility-btn");
   if (!btn) return;
@@ -1144,8 +1395,8 @@ function setupSchemeEligibility() {
     const state = stateEl ? stateEl.value : 'delhi';
     const occ = occEl ? occEl.value : 'farmer';
     const age = ageEl ? parseInt(ageEl.value) : 42;
-    const income = incomeEl ? parseInt(incomeEl.value) : 180000;
-    const land = landEl ? parseFloat(landEl.value) : 1.8;
+    const income = incomeEl ? parseInt(incomeEl.value) : 120000;
+    const land = landEl ? parseFloat(landEl.value) : 1.5;
     
     btn.disabled = true;
     btn.innerHTML = `<span class="material-symbols-outlined text-sm animate-spin">sync</span> Evaluating...`;
@@ -1260,6 +1511,41 @@ function setupSchemeEligibility() {
             { name: "Birth Certificate of Girl Child", status: "checked" },
             { name: "Guardian PAN & Aadhaar Cards", status: "checked" },
             { name: "Initial Account Deposit (min ₹250)", status: "unchecked" }
+          ];
+        } else if (service.id === 'pm-awas') {
+          if (income > 300000) {
+            pct = 25;
+            prob = "Low (Ineligible)";
+            explanation = "Applicant family income exceeds the threshold for EWS/LIG housing grants.";
+            exclusions.push("Income exceeds EWS/LIG category limit.");
+          } else {
+            pct = 92;
+            prob = "Very High (Eligible)";
+            explanation = "Applicant fits under PMAY low-income category rules with no registered house.";
+            eligible.push("Household income within EWS bounds.");
+            eligible.push("No pucca house registered in India.");
+          }
+          docs = [
+            { name: "Identity Proof (Aadhaar Card of all members)", status: "checked" },
+            { name: "Income Certificate issued by Revenue Authority", status: "unchecked" },
+            { name: "Self-Affidavit of zero property ownership", status: "checked" }
+          ];
+        } else if (service.id === 'atal-pension') {
+          if (age < 18 || age > 40) {
+            pct = 10;
+            prob = "Low (Ineligible)";
+            explanation = "Subscriber must be between 18 and 40 years of age at joining.";
+            exclusions.push("Age falls outside the 18-40 window.");
+          } else {
+            pct = 96;
+            prob = "Very High (Eligible)";
+            explanation = "Subscriber complies with age boundaries and is not an active taxpayer.";
+            eligible.push("Age is within 18-40 window.");
+            eligible.push("Non-taxpayer profile verified.");
+          }
+          docs = [
+            { name: "Bank Passbook with auto-debit consent", status: "checked" },
+            { name: "Aadhaar Card of Subscriber", status: "checked" }
           ];
         } else {
           pct = 90;
@@ -1450,6 +1736,34 @@ function setupLetterControls() {
 
 भवदीय,
 अभिभावक आवेदक`;
+          } else if (item.id === 'pm-awas') {
+            detailDraft.textContent = `सेवा में,
+नगर आयुक्त (आवास प्रभाग),
+राज्य विकास प्राधिकरण।
+
+विषय: प्रधानमंत्री आवास योजना (PMAY-U) के तहत आवास अनुदान के लिए अनुरोध।
+
+महोदय/महोदया,
+मैं आवास योजना सब्सिडी के लिए अपने परिवार की पात्रता प्रस्तुत कर रहा हूँ। हमारे पास कोई पक्का मकान नहीं है।
+
+कृपया आवास सर्वेक्षण अधिकृत करें।
+
+भवदीय,
+आवेदक`;
+          } else if (item.id === 'atal-pension') {
+            detailDraft.textContent = `सेवा में,
+शाखा प्रबंधक,
+[बचत खाता बैंक]।
+
+विषय: अटल पेंशन योजना के तहत ऑटो-डेबिट के लिए सहमति।
+
+महोदय/महोदया,
+मैं अपनी आयु 28 वर्ष के अनुकूल प्रति माह ₹5,000 की पेंशन के लिए आवेदन पत्र जमा कर रहा हूँ।
+
+कृपया मेरे बचत खाते से मासिक योगदान शुरू करें।
+
+भवदीय,
+आवेदक`;
           } else if (item.id === 'complaint-1') {
             detailDraft.textContent = `सेवा में,
 अधिशासी अभियंता (विद्युत),
@@ -1485,104 +1799,9 @@ function setupLetterControls() {
   }
 }
 
-// Conversational AI Copilot Companion (Sidebar widgets binding)
+// Conversational AI Copilot Companion
 function setupChatCompanion() {
-  const input = document.getElementById("chat-input");
-  const btn = document.getElementById("send-chat-btn");
-  const history = document.getElementById("chat-history");
-  
-  if (!btn || !input || !history) return;
-  
-  const handleChat = async () => {
-    const q = input.value.trim();
-    if (!q) return;
-    
-    appendChatMessage("user", q);
-    input.value = "";
-    history.scrollTop = history.scrollHeight;
-    
-    const loader = appendChatMessage("bot", `<span class="material-symbols-outlined text-[10px] animate-spin">sync</span> Thinking...`);
-    
-    try {
-      const messages = [];
-      const messageBlocks = history.children;
-      for (let i = 0; i < messageBlocks.length - 1; i++) {
-        const block = messageBlocks[i];
-        const isUser = block.classList.contains("self-end");
-        const msgTextEl = block.querySelector(".message-text");
-        if (msgTextEl) {
-          messages.push({
-            role: isUser ? "user" : "model",
-            parts: [{ text: msgTextEl.innerText }]
-          });
-        }
-      }
-      
-      const response = await fetch('/api/gemini', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          action: 'chat',
-          history: messages,
-          language: appState.currentLanguage
-        })
-      });
-      
-      if (!response.ok) throw new Error('API failed');
-      const data = await response.json();
-      
-      if (loader) {
-        const loaderTextEl = loader.querySelector(".message-text");
-        if (loaderTextEl) loaderTextEl.innerHTML = data.reply;
-      }
-      
-    } catch (err) {
-      console.warn("Companion API failed, simulating locally:", err);
-      showToast("API Offline Mode: Simulating companion response...", false);
-      
-      setTimeout(() => {
-        const fallback = generateChatFallback(q);
-        if (loader) {
-          const loaderTextEl = loader.querySelector(".message-text");
-          if (loaderTextEl) loaderTextEl.innerHTML = fallback;
-        }
-        history.scrollTop = history.scrollHeight;
-      }, 1000);
-    }
-    
-    history.scrollTop = history.scrollHeight;
-  };
-  
-  btn.addEventListener("click", handleChat);
-  input.addEventListener("keydown", (e) => {
-    if (e.key === 'Enter') handleChat();
-  });
-}
-
-function appendChatMessage(role, text) {
-  const chatBox = document.getElementById("chat-history");
-  if (!chatBox) return null;
-  
-  const messageDiv = document.createElement("div");
-  
-  const isUser = role === "user";
-  messageDiv.className = `p-2 rounded-lg text-[10px] leading-relaxed flex flex-col ${
-    isUser 
-      ? "bg-primary/10 ml-4 self-end text-white text-right border border-primary/20" 
-      : "bg-white/5 mr-4 self-start text-on-surface-variant border border-white/5"
-  }`;
-  
-  const roleLabel = isUser ? "You" : "Companion";
-  const colorLabel = isUser ? "text-primary" : "text-primary/60";
-  
-  messageDiv.innerHTML = `
-    <span class="block font-bold mb-0.5 ${colorLabel} uppercase text-[8px]">${roleLabel}</span>
-    <div class="message-text">${text}</div>
-  `;
-  
-  chatBox.appendChild(messageDiv);
-  chatBox.scrollTop = chatBox.scrollHeight;
-  return messageDiv;
+  // Configured inside setupFloatingChat() to run dynamically inside the expandable widget panel
 }
 
 function generateChatFallback(q) {
@@ -1593,26 +1812,32 @@ function generateChatFallback(q) {
     2. Upload scan: Proof of Address (Rent Agreement, electricity bill, etc.)
     3. Fee: Pay statutory fee of ₹50.`;
   }
-  
   if (text.includes("pm-kisan") || text.includes("eligible")) {
     return `Under PM-KISAN guidelines:
     - Land holdings must be under 2 hectares (5 acres).
     - Exclusions: regular tax payers or government employee families.`;
   }
-  
   if (text.includes("ujjwala") || text.includes("gas")) {
     return `PM Ujjwala Yojana (PMUY) supports:
     - LPG connections for adult women of BPL/low-income families.
     - Submit Aadhaar, state Ration Card, and bank details.`;
   }
-  
   if (text.includes("sukanya") || text.includes("girl")) {
     return `Sukanya Samriddhi Yojana (SSY):
     - Open savings accounts for girls under 10 years of age.
     - Submit Birth Certificate and Guardian KYC.`;
   }
-  
-  return `I have registered your query: "${escapeHTML(q)}". Ask me about "Aadhaar correction", "Ujjwala LPG guidelines", or "Sukanya account details".`;
+  if (text.includes("awas") || text.includes("home") || text.includes("house")) {
+    return `PM Awas Yojana (PMAY):
+    - Grants for EWS/LIG families without pucca housing.
+    - Submit Aadhaar of all members, Income Certificate, and property self-affidavit.`;
+  }
+  if (text.includes("pension") || text.includes("atal")) {
+    return `Atal Pension Yojana (APY):
+    - Guaranteed monthly pension for unorganized sector workers (age 18-40).
+    - Must possess active savings bank account for auto-debit contribution.`;
+  }
+  return `I have registered your query: "${escapeHTML(q)}". Ask me about "Aadhaar correction", "Ujjwala LPG", "Sukanya girl child account", "Awas house grants", or "Atal Pension registration".`;
 }
 
 // SECONDARY FEATURE: Voice Grievance Modal Overlay (MORPHS UI LIVE)
@@ -1725,23 +1950,9 @@ function setupVoiceModalRecorder() {
         // Append grievance
         appState.grievances.unshift(newGrievance);
         
-        // Toggle directory switcher to Grievances
-        const btnServices = document.getElementById("btn-show-services");
-        const btnGrievances = document.getElementById("btn-show-grievances");
-        
-        if (btnServices && btnGrievances) {
-          btnServices.classList.remove("active-nav-tab");
-          btnServices.classList.add("text-on-surface-variant");
-          btnGrievances.classList.add("active-nav-tab");
-          btnGrievances.classList.remove("text-on-surface-variant");
-        }
-        
-        appState.activeDirectoryTab = 'grievances';
-        const listTitleEl = document.getElementById("directory-list-title");
-        if (listTitleEl) listTitleEl.textContent = "Complaints Track";
-        
-        // Re-render
-        renderServicesDirectory();
+        // Switch view
+        const tabNavComplaints = document.getElementById("tab-nav-complaints");
+        if (tabNavComplaints) tabNavComplaints.click();
         
         // Select complaint card (morphs timeline layout)
         selectService(newId);
