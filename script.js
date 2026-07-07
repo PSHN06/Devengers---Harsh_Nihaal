@@ -2091,102 +2091,51 @@ function setupVoiceModalRecorder() {
     });
   }
   
-  // ── Real Web Speech API recording ────────────────────────────────────────
-  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-  let recognition = null;
-
-  const startModalRecording = () => {
-    if (!SpeechRecognition) {
-      showToast("⚠️ Your browser doesn't support voice input. Please type your complaint manually.", true);
-      return;
-    }
-
-    recognition = new SpeechRecognition();
-    recognition.continuous     = true;   // keep listening until stopped
-    recognition.interimResults = true;   // show words as they're spoken
-    recognition.lang           = 'en-IN'; // Indian English; also picks up Hindi
-
-    let finalTranscript = textInput ? textInput.value : '';
-
-    recognition.onstart = () => {
-      appState.isRecording = true;
-      recBtn.classList.add('recording');
-      if (recTxt) recTxt.textContent = 'Listening… (tap again to stop)';
-      if (placeholder) placeholder.classList.add('hidden');
-      if (waves) waves.classList.remove('hidden');
-      showToast('🎙️ Microphone active — speak your complaint now.');
-    };
-
-    recognition.onresult = (event) => {
-      let interimTranscript = '';
-      for (let i = event.resultIndex; i < event.results.length; i++) {
-        const transcript = event.results[i][0].transcript;
-        if (event.results[i].isFinal) {
-          finalTranscript += transcript + ' ';
-        } else {
-          interimTranscript += transcript;
-        }
-      }
-      // Show both confirmed + in-progress text live in the textarea
-      if (textInput) {
-        textInput.value = finalTranscript + interimTranscript;
-      }
-    };
-
-    recognition.onerror = (event) => {
-      console.warn('Speech recognition error:', event.error);
-      const msgs = {
-        'not-allowed'      : '⛔ Microphone access denied. Allow microphone in browser settings.',
-        'no-speech'        : '🔇 No speech detected. Please try again.',
-        'network'          : '📶 Network error — check your connection.',
-        'audio-capture'    : '🎤 No microphone found. Plug one in and retry.',
-        'aborted'          : 'Recording stopped.',
-      };
-      showToast(msgs[event.error] || `Voice error: ${event.error}`, event.error !== 'aborted');
-      stopModalRecording();
-    };
-
-    recognition.onend = () => {
-      // Auto-finalise when speech engine closes (e.g. long silence)
-      if (appState.isRecording) stopModalRecording();
-    };
-
-    try {
-      recognition.start();
-    } catch (e) {
-      showToast('Could not start microphone: ' + e.message, true);
-    }
-  };
-
-  const stopModalRecording = () => {
-    appState.isRecording = false;
-    if (recognition) {
-      try { recognition.stop(); } catch (_) {}
-      recognition = null;
-    }
-    recBtn.classList.remove('recording');
-    if (recTxt) recTxt.textContent = 'Record Voice';
-    if (waves) waves.classList.add('hidden');
-    if (placeholder) placeholder.classList.remove('hidden');
-    showToast('✅ Recording stopped. Review your transcript below.');
-  };
-
-  recBtn.addEventListener('click', () => {
+  // Modal voice recording simulation
+  const recBtn = document.getElementById("modal-record-btn");
+  const recTxt = document.getElementById("modal-record-btn-text");
+  const waves = document.getElementById("modal-audio-waves");
+  const placeholder = document.getElementById("modal-waveform-placeholder");
+  const textInput = document.getElementById("modal-transcript-textarea");
+  
+  if (!recBtn) return;
+  
+  recBtn.addEventListener("click", () => {
     if (appState.isRecording) {
       stopModalRecording();
     } else {
-      startModalRecording();
+      appState.isRecording = true;
+      recBtn.classList.add("recording");
+      if (recTxt) recTxt.textContent = "Recording...";
+      if (placeholder) placeholder.classList.add("hidden");
+      if (waves) waves.classList.remove("hidden");
+      
+      showToast("Simulation: Recording grievance audio input...");
+      
+      appState.recordingTimeout = setTimeout(() => {
+        stopModalRecording(true);
+      }, 3500);
     }
   });
-
-  // Stop recording when modal is closed
-  if (closeBtn) {
-    closeBtn.addEventListener('click', () => {
-      if (appState.isRecording) stopModalRecording();
-      modal.classList.add('hidden');
-    });
-  }
-
+  
+  const stopModalRecording = (finishedAuto = false) => {
+    clearTimeout(appState.recordingTimeout);
+    appState.isRecording = false;
+    
+    recBtn.classList.remove("recording");
+    if (recTxt) recTxt.textContent = "Record Voice";
+    if (waves) waves.classList.add("hidden");
+    if (placeholder) placeholder.classList.remove("hidden");
+    
+    if (finishedAuto && textInput) {
+      textInput.value = "The street drainage pipeline is overflowing, flooding the road with waste sewage. (Ameerpet, Hyderabad)";
+      const locInput = document.getElementById("modal-location-input");
+      if (locInput) locInput.value = "Ameerpet Metro, Hyderabad";
+      showToast("Simulation: Voice recorded and parsed successfully!");
+    } else {
+      showToast("Recording stopped.");
+    }
+  };
   
   // Modal form submit (MORPHS UI LIVE)
   const submitBtn = document.getElementById("modal-submit-btn");
@@ -2300,41 +2249,39 @@ function setupVoiceModalRecorder() {
     });
   }
   
-  // Modal demo buttons (Quick Vernacular Reports)
+  // Modal demo buttons
   const demoBtns = modal.querySelectorAll(".demo-btn");
   demoBtns.forEach(btn => {
     btn.addEventListener("click", () => {
       const sample = btn.getAttribute("data-text");
-      const lang   = btn.getAttribute("data-lang");
-
-      // Stop any live recording first
+      const lang = btn.getAttribute("data-lang");
+      
+      showToast(`Simulation: Loading ${btn.textContent.trim()} prompt...`);
+      
       if (appState.isRecording) stopModalRecording();
-
-      // Show brief "loading" animation
-      if (recTxt) recTxt.textContent = "Loading…";
+      appState.isRecording = true;
+      recBtn.className = "bg-error/10 border border-error/20 text-error font-bold px-5 py-2 rounded-full text-xs flex items-center gap-1.5 transition-all shadow-md recording";
+      if (recTxt) recTxt.textContent = "Processing...";
       if (placeholder) placeholder.classList.add("hidden");
       if (waves) waves.classList.remove("hidden");
-      showToast(`Loading ${btn.textContent.trim()} demo…`);
-
+      
       setTimeout(() => {
+        appState.isRecording = false;
+        recBtn.className = "bg-error/10 border border-error/20 hover:bg-error/20 text-error font-bold px-5 py-2 rounded-full text-xs flex items-center gap-1.5 transition-all shadow-md";
+        if (recTxt) recTxt.textContent = "Record Voice";
         if (waves) waves.classList.add("hidden");
         if (placeholder) placeholder.classList.remove("hidden");
-        if (recTxt) recTxt.textContent = "Record Voice";
-
-        // Fill sample text
-        const textInputEl = document.getElementById("modal-transcript-textarea");
-        if (textInputEl) textInputEl.value = sample;
-
-        // Fill matching location
-        const locInputEl = document.getElementById("modal-location-input");
-        if (locInputEl) {
-          if (lang === 'hi') locInputEl.value = "Sector 15, Dwarka, Delhi";
-          if (lang === 'ta') locInputEl.value = "Anna Nagar Main Road, Chennai";
-          if (lang === 'kn') locInputEl.value = "Indiranagar Metro, Bengaluru";
+        
+        if (textInput) textInput.value = sample;
+        const locInput = document.getElementById("modal-location-input");
+        if (locInput) {
+          if (lang === 'hi') locInput.value = "Sector 15, Dwarka, Delhi";
+          if (lang === 'ta') locInput.value = "Anna Nagar Main Road, Chennai";
+          if (lang === 'kn') locInput.value = "Indiranagar Metro, Bengaluru";
         }
-
-        showToast("✅ Demo text loaded. Edit or submit directly.");
-      }, 700);
+        
+        showToast("Simulation: Vernacular text loaded successfully!");
+      }, 1000);
     });
   });
 }
