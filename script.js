@@ -593,8 +593,12 @@ function setupViewRouting() {
   const bentoReport = document.getElementById("bento-card-report");
   if (bentoReport) {
     bentoReport.addEventListener("click", () => {
-      const modal = document.getElementById("voice-modal");
-      if (modal) modal.classList.remove("hidden");
+      if (typeof window.openVoiceModal === 'function') {
+        window.openVoiceModal();
+      } else {
+        const modal = document.getElementById("voice-modal");
+        if (modal) modal.classList.remove("hidden");
+      }
     });
   }
   
@@ -860,16 +864,8 @@ function setupLanguageSelector() {
   });
 }
 
-// Sidebar Directory switcher
-function setupDirectorySwitcher() {
-  const btnServices = document.getElementById("btn-show-services");
-  const btnGrievances = document.getElementById("btn-show-grievances");
-  const grievanceCount = document.getElementById("grievance-count");
-  
-  if (grievanceCount) {
-    grievanceCount.textContent = appState.grievances.length;
-  }
-}
+// Sidebar Directory switcher (no-op – elements removed in new HTML)
+function setupDirectorySwitcher() {}
 
 // Top Navbar header trigger hooks
 function setupStaticNavBarLinks() {
@@ -1989,12 +1985,21 @@ function setupVoiceModalRecorder() {
   const closeBtn = document.getElementById("close-voice-modal-btn");
   const modal = document.getElementById("voice-modal");
   
-  if (!openBtn || !modal) return;
-  
-  openBtn.addEventListener("click", () => {
+  if (!modal) return;
+
+  // Open modal from sidebar button (complaints view)
+  if (openBtn) {
+    openBtn.addEventListener("click", () => {
+      modal.classList.remove("hidden");
+      showToast("Opened Voice Grievance modal.");
+    });
+  }
+
+  // Also expose a global opener for bento card and other triggers
+  window.openVoiceModal = () => {
     modal.classList.remove("hidden");
     showToast("Opened Voice Grievance modal.");
-  });
+  };
   
   if (closeBtn) {
     closeBtn.addEventListener("click", () => {
@@ -2049,7 +2054,7 @@ function setupVoiceModalRecorder() {
     }
   };
   
-  // Modal form submit (MORHP UI LIVE)
+  // Modal form submit (MORPHS UI LIVE)
   const submitBtn = document.getElementById("modal-submit-btn");
   if (submitBtn) {
     submitBtn.addEventListener("click", () => {
@@ -2059,23 +2064,55 @@ function setupVoiceModalRecorder() {
       const catSelect = document.getElementById("modal-category-select");
       const categoryVal = catSelect ? catSelect.value : "auto";
       
-      if (!textVal || !locVal) {
-        showToast("Error: Description and Location are mandatory.", true);
+      if (!textVal) {
+        showToast("Error: Please describe your issue before submitting.", true);
+        return;
+      }
+      if (!locVal) {
+        showToast("Error: Please enter a location landmark.", true);
         return;
       }
       
-      showToast("Simulation: Geocoding coordinates and linking municipal agency...");
+      // Disable button to prevent double-submit
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = `<span class="material-symbols-outlined text-[14px] align-middle mr-1 animate-spin">sync</span> Processing...`;
+      showToast("Geocoding coordinates and linking municipal agency...");
       
       setTimeout(() => {
-        const detectedCategory = categoryVal === 'auto' ? 'Sewage' : categoryVal;
+        // Smart auto-detect category from transcript text
+        let detectedCategory = categoryVal;
+        if (categoryVal === 'auto') {
+          const lower = textVal.toLowerCase();
+          if (lower.includes('street') || lower.includes('light') || lower.includes('lamp') || lower.includes('electric') || lower.includes('bijli') || lower.includes('bulb')) {
+            detectedCategory = 'Streetlight';
+          } else if (lower.includes('pothole') || lower.includes('road') || lower.includes('sadak') || lower.includes('gaddha') || lower.includes('pit')) {
+            detectedCategory = 'Roads';
+          } else if (lower.includes('garbage') || lower.includes('waste') || lower.includes('kachra') || lower.includes('trash') || lower.includes('dustbin')) {
+            detectedCategory = 'Waste';
+          } else if (lower.includes('sewage') || lower.includes('drain') || lower.includes('naali') || lower.includes('overflow') || lower.includes('nali')) {
+            detectedCategory = 'Sewage';
+          } else if (lower.includes('water') || lower.includes('pani') || lower.includes('pipe') || lower.includes('supply')) {
+            detectedCategory = 'Water';
+          } else {
+            detectedCategory = 'General';
+          }
+        }
+
         const agencyName = getAgencyNameLocally(detectedCategory, locVal);
         const geocode = `JW-GRI-${Math.floor(100 + Math.random() * 900)}`;
         const localDraft = generateDraftLocally(detectedCategory, locVal, textVal);
         
-        const newId = `complaint-${appState.grievances.length + 1}`;
+        // Generate valid random coordinates near Indian cities
+        const cityCoords = getCityCoords(locVal);
+        const latOffset = (Math.random() - 0.5) * 0.08;
+        const lngOffset = (Math.random() - 0.5) * 0.08;
+        const finalLat = (cityCoords.lat + latOffset).toFixed(6);
+        const finalLng = (cityCoords.lng + lngOffset).toFixed(6);
+
+        const newId = `complaint-${Date.now()}`;
         const newGrievance = {
           id: newId,
-          name: textVal.length > 40 ? textVal.substring(0, 40) + "..." : textVal,
+          name: textVal.length > 45 ? textVal.substring(0, 45) + "..." : textVal,
           subtitle: textVal,
           category: detectedCategory.toLowerCase(),
           categoryDisplay: detectedCategory,
@@ -2083,26 +2120,43 @@ function setupVoiceModalRecorder() {
           agency: agencyName,
           eta: "3-5 Business Days",
           geocode: geocode,
-          lat: "28.5" + Math.floor(1000+Math.random()*8999),
-          lng: "77.0" + Math.floor(1000+Math.random()*8999),
+          lat: finalLat,
+          lng: finalLng,
           stage: 2,
-          log: `Grievance registered. Target Department linked: <strong>${escapeHTML(agencyName)}</strong>. Scheduled for field audit.`,
+          log: `Grievance registered at <strong>${escapeHTML(locVal)}</strong>. Department linked: <strong>${escapeHTML(agencyName)}</strong>. Scheduled for field audit.`,
           draft: localDraft
         };
         
-        // Append grievance
+        // Append to state
         appState.grievances.unshift(newGrievance);
+        renderGrievancesDirectory();
         
-        // Switch view
-        const tabNavComplaints = document.getElementById("tab-nav-complaints");
-        if (tabNavComplaints) tabNavComplaints.click();
-        
-        // Select complaint card (morphs timeline layout)
+        // Switch to complaints view first, then select the new card
+        appState.activeView = 'complaints-view';
+        document.querySelectorAll(".view-frame").forEach(vf => {
+          vf.classList.toggle('hidden', vf.id !== 'complaints-view');
+        });
+        document.querySelectorAll(".nav-view-tab").forEach(t => {
+          if (t.getAttribute('data-view') === 'complaints-view') {
+            t.className = "text-primary font-bold border-b-2 border-primary pb-1 transition-all duration-300 nav-view-tab active";
+          } else {
+            t.className = "text-on-surface-variant font-medium hover:text-white transition-all duration-300 nav-view-tab";
+          }
+        });
+
+        // Select the new complaint card
         selectService(newId);
+
+        // Init map with real coords
+        setTimeout(() => {
+          initLeafletMap(parseFloat(finalLat), parseFloat(finalLng));
+        }, 200);
         
-        // Hide Modal
+        // Hide Modal and reset
         modal.classList.add("hidden");
-        showToast("Grievance registered and timeline tracking is now active!");
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = `<span class="material-symbols-outlined text-[14px] align-middle mr-1">check_circle</span> Submit Grievance`;
+        showToast(`✓ Grievance registered! Tracking ID: ${geocode}`);
         
         // Reset fields
         if (textInput) textInput.value = "";
@@ -2149,16 +2203,44 @@ function setupVoiceModalRecorder() {
   });
 }
 
+// City coordinate lookup for real Leaflet map placement
+function getCityCoords(location) {
+  const lower = location.toLowerCase();
+  if (lower.includes('delhi') || lower.includes('dwarka') || lower.includes('noida') || lower.includes('gurgaon')) return { lat: 28.6139, lng: 77.2090 };
+  if (lower.includes('chennai') || lower.includes('anna nagar') || lower.includes('tambaram')) return { lat: 13.0827, lng: 80.2707 };
+  if (lower.includes('bengaluru') || lower.includes('bangalore') || lower.includes('indiranagar') || lower.includes('whitefield')) return { lat: 12.9716, lng: 77.5946 };
+  if (lower.includes('hyderabad') || lower.includes('ameerpet') || lower.includes('secunderabad')) return { lat: 17.3850, lng: 78.4867 };
+  if (lower.includes('mumbai') || lower.includes('pune') || lower.includes('thane')) return { lat: 19.0760, lng: 72.8777 };
+  if (lower.includes('kolkata') || lower.includes('howrah')) return { lat: 22.5726, lng: 88.3639 };
+  if (lower.includes('lucknow') || lower.includes('kanpur')) return { lat: 26.8467, lng: 80.9462 };
+  if (lower.includes('jaipur') || lower.includes('rajasthan')) return { lat: 26.9124, lng: 75.7873 };
+  if (lower.includes('ahmedabad') || lower.includes('surat') || lower.includes('gujarat')) return { lat: 23.0225, lng: 72.5714 };
+  // Default to centre of India
+  return { lat: 20.5937, lng: 78.9629 };
+}
+
 // Local Fallbacks
 function getAgencyNameLocally(category, location) {
-  let area = location.toLowerCase();
+  const lower = location.toLowerCase();
   let city = "Municipal Council";
-  if (area.includes("delhi")) city = "Delhi Municipal Corporation (MCD)";
-  else if (area.includes("chennai")) city = "Greater Chennai Corporation (GCC)";
-  else if (area.includes("bengaluru") || area.includes("bangalore")) city = "Bruhat Bengaluru Mahanagara Palike (BBMP)";
-  else if (area.includes("hyderabad")) city = "Greater Hyderabad Municipal Corporation (GHMC)";
+  if (lower.includes("delhi") || lower.includes("dwarka") || lower.includes("noida")) city = "Delhi Municipal Corporation (MCD)";
+  else if (lower.includes("chennai") || lower.includes("anna nagar")) city = "Greater Chennai Corporation (GCC)";
+  else if (lower.includes("bengaluru") || lower.includes("bangalore") || lower.includes("indiranagar")) city = "Bruhat Bengaluru Mahanagara Palike (BBMP)";
+  else if (lower.includes("hyderabad") || lower.includes("ameerpet")) city = "Greater Hyderabad Municipal Corporation (GHMC)";
+  else if (lower.includes("mumbai") || lower.includes("thane")) city = "Brihanmumbai Municipal Corporation (BMC)";
+  else if (lower.includes("kolkata") || lower.includes("howrah")) city = "Kolkata Municipal Corporation (KMC)";
+  else if (lower.includes("pune")) city = "Pune Municipal Corporation (PMC)";
   
-  return `${city} - ${category} Maintenance Dept`;
+  const deptMap = {
+    'Streetlight': 'Electrical Division',
+    'Roads': 'Roads & Engineering Division',
+    'Waste': 'Solid Waste Management Dept',
+    'Sewage': 'Drainage & Sewage Division',
+    'Water': 'Water Supply Division',
+    'General': 'General Services Division'
+  };
+  const dept = deptMap[category] || 'General Services Division';
+  return `${city} - ${dept}`;
 }
 
 // Local Document Draft compiles
