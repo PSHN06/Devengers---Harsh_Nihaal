@@ -1,0 +1,292 @@
+/* JanVaani.ai - Custom Theme Variables and Component overrides */
+
+:root {
+  /* Default Light Mode Variables */
+  --bg-color: #f8fafc;
+  --surface-color: #ffffff;
+  --surface-container: #f1f5f9;
+  --surface-container-high: #e2e8f0;
+  --surface-container-lowest: #cbd5e1;
+  
+  --text-main: #0f172a;
+  --text-muted: #475569;
+  --text-inverse: #ffffff;
+  --border-color: rgba(14, 165, 233, 0.15);
+  --glass-bg: rgba(255, 255, 255, 0.7);
+  --header-bg: rgba(248, 250, 252, 0.65);
+  --primary-glow: rgba(14, 165, 233, 0.08);
+  --primary-color: #0284c7;
+  --error-color: #dc2626;
+}
+
+html.dark {
+  /* Dark Mode Variables */
+  --bg-color: #0a0e1a;
+  --surface-color: #0f1524;
+  --surface-container: #141c2e;
+  --surface-container-high: #1a2438;
+  --surface-container-lowest: #0a0e1a;
+  
+  --text-main: #e0e8f0;
+  --text-muted: #a0b4c4;
+  --text-inverse: #001f2e;
+  --border-color: rgba(125, 211, 252, 0.1);
+  --glass-bg: rgba(20, 28, 46, 0.4);
+  --header-bg: rgba(10, 14, 26, 0.6);
+  --primary-glow: rgba(125, 211, 252, 0.1);
+  --primary-color: #7dd3fc;
+  --error-color: #ff6b6b;
+}
+
+/* Base Variable Overrides */
+body {
+  background-color: var(--bg-color) !important;
+  color: var(--text-main) !important;
+  font-family: 'Inter', sans-serif;
+  overflow-x: hidden;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+header {
+  background-color: var(--header-bg) !important;
+  transition: background-color 0.3s ease;
+}
+
+aside, main, footer {
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Custom Glass Panel overrides */
+.glass-panel {
+  background: var(--glass-bg) !important;
+  border-color: var(--border-color) !important;
+  transition: background 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.ice-glow:hover {
+  box-shadow: 0 0 25px rgba(125, 211, 252, 0.2);
+  border-color: rgba(125, 211, 252, 0.4);
+}
+
+/* Active Navigation Indicators */
+.active-nav-tab {
+  background-color: var(--primary-glow) !important;
+  color: var(--primary-color) !important;
+  border: 1px solid var(--border-color) !important;
+}
+
+/* Scrollbars & General selectors */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--primary-color);
+  border-radius: 10px;
+}
+.material-symbols-outlined {
+  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Dynamic theme overrides to correct contrast bugs */
+html:not(.dark) .text-white {
+  color: #0f172a !important;
+}
+
+html:not(.dark) h1, 
+html:not(.dark) h2, 
+html:not(.dark) h3, 
+html:not(.dark) h4, 
+html:not(.dark) h5, 
+html:not(.dark) h6 {
+  color: #0f172a !important;
+}
+
+html:not(.dark) .text-on-surface-variant {
+  color: #475569 !important;
+}
+
+html:not(.dark) input,
+html:not(.dark) select,
+html:not(.dark) textarea {
+  color: #0f172a !important;
+  background-color: rgba(255, 255, 255, 0.8) !important;
+  border-color: rgba(14, 165, 233, 0.3) !important;
+}
+
+html:not(.dark) input::placeholder {
+  color: #94a3b8 !important;
+}
+
+html:not(.dark) .bg-surface-container-high\/40 {
+  background-color: rgba(226, 232, 240, 0.5) !important;
+}
+
+html:not(.dark) .bg-surface-container-lowest {
+  background-color: #f1f5f9 !important;
+}
+
+html:not(.dark) .bg-[#0a0e1a] {
+  background-color: #ffffff !important;
+}
+
+html:not(.dark) .bg-[#111827] {
+  background-color: #f1f5f9 !important;
+}
+
+html:not(.dark) .border-white\/5 {
+  border-color: rgba(14, 165, 233, 0.1) !important;
+}
+
+html:not(.dark) .border-white\/10 {
+  border-color: rgba(14, 165, 233, 0.2) !important;
+}
+
+html:not(.dark) .hover\:bg-white\/5:hover {
+  background-color: rgba(14, 165, 233, 0.05) !important;
+}
+
+html:not(.dark) .bg-white\/5 {
+  background-color: rgba(14, 165, 233, 0.05) !important;
+}
+
+html:not(.dark) .text-on-surface {
+  color: #334155 !important;
+}
+
+/* Toast Alert Styling */
+.toast-container {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  z-index: 1100;
+}
+
+.toast {
+  background: var(--surface-color);
+  border: 1px solid var(--border-color);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.25);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  color: var(--text-main);
+  padding: 0.85rem 1.5rem;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  animation: toast-slide-in 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  min-width: 260px;
+  max-width: 380px;
+  transition: background 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+}
+
+@keyframes toast-slide-in {
+  0% { transform: translateY(10px); opacity: 0; }
+  100% { transform: translateY(0); opacity: 1; }
+}
+
+.toast.error {
+  border-color: var(--error-color);
+  box-shadow: 0 12px 32px rgba(255, 107, 107, 0.1);
+}
+
+.toast-icon-success { color: var(--primary-color); }
+.toast-icon-error { color: var(--error-color); }
+
+/* Waveform simulation visual */
+.stroke {
+  background: var(--primary-color);
+  height: 100%;
+  width: 3px;
+  border-radius: 50px;
+  animation: audio-pulse 1.2s ease-in-out infinite alternate;
+  transform-origin: center;
+}
+.stroke:nth-child(1) { animation-delay: 0.1s; }
+.stroke:nth-child(2) { animation-delay: 0.3s; }
+.stroke:nth-child(3) { animation-delay: 0.6s; }
+.stroke:nth-child(4) { animation-delay: 0.2s; }
+.stroke:nth-child(5) { animation-delay: 0.8s; }
+.stroke:nth-child(6) { animation-delay: 0.4s; }
+.stroke:nth-child(7) { animation-delay: 0.7s; }
+.stroke:nth-child(8) { animation-delay: 0.5s; }
+.stroke:nth-child(9) { animation-delay: 0.3s; }
+.stroke:nth-child(10) { animation-delay: 0.9s; }
+@keyframes audio-pulse {
+  0% { transform: scaleY(0.15); }
+  100% { transform: scaleY(1); }
+}
+
+/* OCR Scanner laser lines */
+.scanner-laser-line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, transparent 10%, var(--primary-color) 50%, transparent 90%);
+  box-shadow: 0 0 12px var(--primary-color);
+  z-index: 5;
+  animation: scan-move 2.2s linear infinite;
+  pointer-events: none;
+}
+@keyframes scan-move {
+  0% { transform: translateY(0); }
+  50% { transform: translateY(180px); }
+  100% { transform: translateY(0); }
+}
+
+/* GIS map styles */
+.mock-map-canvas {
+  height: 180px;
+  background: #111827;
+  position: relative;
+  overflow: hidden;
+  background-image: radial-gradient(rgba(125, 211, 252, 0.15) 1px, transparent 1px);
+  background-size: 16px 16px;
+}
+.map-accent-circle {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 100px;
+  height: 100px;
+  border: 1px solid rgba(125, 211, 252, 0.25);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  animation: radar-sweep 4s linear infinite;
+}
+@keyframes radar-sweep {
+  0% { transform: translate(-50%, -50%) scale(0.6); opacity: 1; }
+  100% { transform: translate(-50%, -50%) scale(1.6); opacity: 0; }
+}
+.marker-pulse {
+  position: absolute;
+  left: 5px;
+  bottom: 0px;
+  width: 18px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(125, 211, 252, 0.4);
+  z-index: -1;
+  animation: marker-glow 1.5s infinite ease-in-out alternate;
+}
+@keyframes marker-glow {
+  0% { transform: scale(0.8); opacity: 0.3; }
+  100% { transform: scale(1.2); opacity: 1; }
+}
