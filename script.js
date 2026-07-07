@@ -1163,189 +1163,160 @@ function selectService(serviceId) {
 function renderActiveServiceDetails() {
   const isGrievance = appState.activeServiceId.startsWith("complaint-");
   const pool = isGrievance ? appState.grievances : appState.services;
-  
+
   const item = pool.find(i => i.id === appState.activeServiceId);
   if (!item) return;
-  
-  // Safe helper to set text content
-  const setText = (id, text) => {
-    const el = document.getElementById(id);
-    if (el) el.textContent = text;
-  };
-  
-  // Safe helper to set innerHTML
-  const setHtml = (id, html) => {
-    const el = document.getElementById(id);
-    if (el) el.innerHTML = html;
-  };
-  
+
+  // Safe helpers
+  const setText = (id, text) => { const el = document.getElementById(id); if (el) el.textContent = text; };
+  const setHtml = (id, html) => { const el = document.getElementById(id); if (el) el.innerHTML = html; };
+
+  // ── Shared fields that exist in BOTH service and grievance workspaces ─────
+  setText("detail-assigned-agency", item.agency || "—");
+  setHtml("detail-agency-log", item.log || "Transaction logged.");
+  setText("detail-draft-text", item.draft || "Representation text pending.");
+  setText("detail-lat-lng", `Lat: ${item.lat || "--"}, Lng: ${item.lng || "--"}`);
+  setText("detail-geocode", item.geocode || "---");
+
+  // ── Grievance-specific fields ─────────────────────────────────────────────
   if (isGrievance) {
-    setText("grievance-service-tag", item.categoryDisplay);
-    setText("grievance-service-title", item.name);
-    setText("grievance-service-subtitle", item.subtitle);
-    
-    setText("timeline-title-label", "Grievance Progress Pipeline");
-    setText("assigned-agency-header", "Assigned Municipal Department Node");
-    setText("draft-title-label", "AI Generated Grievance Letter");
-    setText("draft-desc-label", "Official representation complaint letter routed automatically into administrative-grade English.");
-    setText("map-title-label", "Municipal GIS Network Overlay");
-    setText("draft-icon-type", "mark_email_read");
-    setText("assignment-icon", "lan");
-    setHtml("map-meta-label", `
-      <p><strong>Lattice Code:</strong> CP-GEO-${item.geocode}</p>
-      <p><strong>Network Node:</strong> P2P Grid Node dw-elec-90</p>
-    `);
-    
-    // Initialize real Leaflet Map
-    if (appState.activeView === 'complaints-view') {
-      initLeafletMap(parseFloat(item.lat), parseFloat(item.lng));
+    setText("grievance-service-tag", item.categoryDisplay || "Municipal");
+    setText("grievance-service-title", item.name || "Complaint");
+    setText("grievance-service-subtitle", item.subtitle || item.location || "");
+    setText("assigned-agency-header", "Assigned Municipal Department");
+
+    // Initialise Leaflet map (must be visible first)
+    const lat = parseFloat(item.lat);
+    const lng = parseFloat(item.lng);
+    if (!isNaN(lat) && !isNaN(lng)) {
+      // Use requestAnimationFrame to ensure the container is visible/sized
+      requestAnimationFrame(() => {
+        setTimeout(() => initLeafletMap(lat, lng), 80);
+      });
     }
-    
+
+  // ── Service-specific fields ───────────────────────────────────────────────
   } else {
-    setText("active-service-tag", item.categoryDisplay);
-    setText("active-service-title", item.name);
-    setText("active-service-subtitle", item.subtitle);
-    
-    setText("timeline-title-label", "Administrative Progress Pipeline");
+    setText("active-service-tag", item.categoryDisplay || "");
+    setText("active-service-title", item.name || "");
+    setText("active-service-subtitle", item.subtitle || "");
     setText("assigned-agency-header", "Assigned Department Office");
-    setText("draft-title-label", "AI Generated Representation Draft");
-    setText("draft-desc-label", "Formal administrative representational letter compiled in English.");
-    setText("map-title-label", "GIS Location Network Overlay");
-    setText("draft-icon-type", "draft");
-    setText("assignment-icon", "account_balance");
-    setHtml("map-meta-label", `
-      <p><strong>Lattice Identifier:</strong> JW-GEO-${item.geocode}</p>
-      <p><strong>Municipal Grid Node:</strong> Sector 15 block-node registry mapping</p>
-    `);
-    
-    // Set Guidelines details
+
+    // Guidelines list
     const formatsList = document.getElementById("active-guide-formats");
-    if (formatsList && item.formats) {
-      formatsList.innerHTML = "";
-      item.formats.forEach(f => {
-        const li = document.createElement("li");
-        li.className = "flex gap-4";
-        li.innerHTML = `
-          <span class="w-1.5 h-1.5 rounded-full bg-primary mt-2.5 shrink-0 shadow-[0_0_8px_rgba(125,211,252,0.8)]"></span>
-          <p class="text-on-surface/90">${escapeHTML(f)}</p>
-        `;
-        formatsList.appendChild(li);
-      });
-    } else if (formatsList) {
-      formatsList.innerHTML = `<li class="text-on-surface-variant">General information and updates.</li>`;
+    if (formatsList) {
+      if (item.formats && item.formats.length) {
+        formatsList.innerHTML = "";
+        item.formats.forEach(f => {
+          const li = document.createElement("li");
+          li.className = "flex gap-4";
+          li.innerHTML = `
+            <span class="w-1.5 h-1.5 rounded-full bg-primary mt-2.5 shrink-0 shadow-[0_0_8px_rgba(125,211,252,0.8)]"></span>
+            <p class="text-on-surface/90">${escapeHTML(f)}</p>
+          `;
+          formatsList.appendChild(li);
+        });
+      } else {
+        formatsList.innerHTML = `<li class="text-on-surface-variant">General information and updates.</li>`;
+      }
     }
-    
+
     const resolutionsList = document.getElementById("active-guide-resolutions");
-    if (resolutionsList && item.resolutions) {
-      resolutionsList.innerHTML = "";
-      item.resolutions.forEach(r => {
-        const li = document.createElement("li");
-        li.className = "flex gap-4";
-        li.innerHTML = `
-          <span class="w-1.5 h-1.5 rounded-full bg-error mt-2.5 shrink-0"></span>
-          <div>${r}</div>
-        `;
-        resolutionsList.appendChild(li);
-      });
-    } else if (resolutionsList) {
-      resolutionsList.innerHTML = `<li class="text-on-surface-variant">Check official portal.</li>`;
+    if (resolutionsList) {
+      if (item.resolutions && item.resolutions.length) {
+        resolutionsList.innerHTML = "";
+        item.resolutions.forEach(r => {
+          const li = document.createElement("li");
+          li.className = "flex gap-4";
+          li.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-error mt-2.5 shrink-0"></span><div>${r}</div>`;
+          resolutionsList.appendChild(li);
+        });
+      } else {
+        resolutionsList.innerHTML = `<li class="text-on-surface-variant">Check official portal.</li>`;
+      }
     }
-    
+
     const stepsContainer = document.getElementById("active-guide-steps");
-    if (stepsContainer && item.steps) {
-      stepsContainer.innerHTML = "";
-      item.steps.forEach(step => {
-        const div = document.createElement("div");
-        div.className = "glass-panel p-5 rounded-xl relative group transition-all cursor-default overflow-hidden border border-white/5 hover:border-primary/30";
-        div.innerHTML = `
-          <span class="absolute -bottom-4 -right-2 text-6xl font-extrabold text-primary/5 select-none transition-colors group-hover:text-primary/10">${step.num}</span>
-          <h4 class="text-sm font-bold mb-2 text-white">${escapeHTML(step.title)}</h4>
-          <p class="text-[10px] text-on-surface-variant leading-relaxed">${escapeHTML(step.desc)}</p>
-          <div class="mt-4 w-full h-1 bg-white/5 rounded-full overflow-hidden">
-            <div class="w-full h-full bg-primary origin-left"></div>
-          </div>
-        `;
-        stepsContainer.appendChild(div);
-      });
-    } else if (stepsContainer) {
-      stepsContainer.innerHTML = `
-        <div class="glass-panel p-5 rounded-xl border border-white/5 text-xs text-on-surface-variant">
-          Follow guidelines in previous tabs.
-        </div>
-      `;
+    if (stepsContainer) {
+      if (item.steps && item.steps.length) {
+        stepsContainer.innerHTML = "";
+        item.steps.forEach(step => {
+          const div = document.createElement("div");
+          div.className = "glass-panel p-5 rounded-xl relative group transition-all cursor-default overflow-hidden border border-white/5 hover:border-primary/30";
+          div.innerHTML = `
+            <span class="absolute -bottom-4 -right-2 text-6xl font-extrabold text-primary/5 select-none transition-colors group-hover:text-primary/10">${step.num}</span>
+            <h4 class="text-sm font-bold mb-2 text-white">${escapeHTML(step.title)}</h4>
+            <p class="text-[10px] text-on-surface-variant leading-relaxed">${escapeHTML(step.desc)}</p>
+            <div class="mt-4 w-full h-1 bg-white/5 rounded-full overflow-hidden">
+              <div class="w-full h-full bg-primary origin-left"></div>
+            </div>
+          `;
+          stepsContainer.appendChild(div);
+        });
+      } else {
+        stepsContainer.innerHTML = `<div class="glass-panel p-5 rounded-xl border border-white/5 text-xs text-on-surface-variant">Follow guidelines in previous tabs.</div>`;
+      }
     }
-    
+
+    // Default evaluator inputs
     const inputAge = document.getElementById("scheme-age");
     if (inputAge) inputAge.value = item.defaultAge || 35;
-    
+
     const inputIncome = document.getElementById("scheme-income");
     if (inputIncome) inputIncome.value = item.defaultIncome || 120000;
-    
+
     const inputLand = document.getElementById("scheme-land");
     if (inputLand) {
       inputLand.value = item.defaultLand || 0;
-      if (item.category !== 'agriculture') {
-        inputLand.value = 0;
-        inputLand.disabled = true;
-      } else {
-        inputLand.disabled = false;
-      }
+      inputLand.disabled = item.category !== 'agriculture';
     }
-    
+
     const selectOcc = document.getElementById("scheme-occupation");
     if (selectOcc) selectOcc.value = item.defaultOccupation || "salaried";
-    
+
     resetEvaluatorDisplay(item);
     resetOCRScannerDisplay(item);
   }
-  
-  // Renders tracking elements
-  setText("detail-assigned-agency", item.agency);
-  setHtml("detail-agency-log", item.log || "Transaction logged.");
-  setText("detail-draft-text", item.draft || "Representation text pending.");
-  setText("detail-lat-lng", `Lat: ${item.lat}, Lng: ${item.lng}`);
-  setText("detail-geocode", item.geocode);
-  
-  // Pipeline stages timeline construction
+
+  // ── Pipeline timeline (shared, exists in grievance workspace) ─────────────
   const pipelineStages = document.getElementById("pipeline-stages-container");
   if (pipelineStages) {
     pipelineStages.innerHTML = "";
-    for (let num = 1; num <= 5; num++) {
+    const stageCount = 5;
+    for (let num = 1; num <= stageCount; num++) {
       const isCompleted = num < item.stage;
-      const isCurrent = num === item.stage;
-      
+      const isCurrent   = num === item.stage;
+
       let stateClass = "text-on-surface-variant";
-      let dotClass = "bg-[#111a2d] border-white/5 text-on-surface-variant";
-      
+      let dotClass   = "bg-surface-container border-white/5 text-on-surface-variant";
+
       if (isCompleted) {
         stateClass = "text-primary font-semibold";
-        dotClass = "bg-primary border-primary text-background shadow-[0_0_15px_rgba(125,211,252,0.4)]";
+        dotClass   = "bg-primary border-primary text-background shadow-[0_0_15px_rgba(125,211,252,0.4)]";
       } else if (isCurrent) {
         if (item.stage === 5) {
           stateClass = "text-primary font-semibold";
-          dotClass = "bg-primary border-primary text-background shadow-[0_0_15px_rgba(125,211,252,0.4)]";
+          dotClass   = "bg-primary border-primary text-background shadow-[0_0_15px_rgba(125,211,252,0.4)]";
         } else {
           stateClass = "text-amber-500 font-semibold";
-          dotClass = "bg-amber-500 border-amber-500 text-background shadow-[0_0_15px_rgba(245,158,11,0.4)] animate-pulse";
+          dotClass   = "bg-amber-500 border-amber-500 text-background shadow-[0_0_15px_rgba(245,158,11,0.4)] animate-pulse";
         }
       }
-      
+
       const stageName = isGrievance
         ? { 1: "Lodge", 2: "Assign", 3: "Verify", 4: "Action", 5: "Resolved" }[num]
-        : { 1: "Lodge", 2: "Audit", 3: "Sanction", 4: "Release", 5: "Complete" }[num];
-        
+        : { 1: "Lodge", 2: "Audit",  3: "Sanction", 4: "Release", 5: "Complete" }[num];
+
       const dateText = num <= item.stage ? "07 Jul" : "--";
-      
+      const iconName = isGrievance
+        ? { 1: "assignment", 2: "person_search", 3: "verified_user", 4: "engineering", 5: "task_alt" }[num]
+        : { 1: "assignment", 2: "find_in_page",  3: "gavel",        4: "payments",   5: "task_alt" }[num];
+
       const stepDiv = document.createElement("div");
       stepDiv.className = `stage-step flex flex-col items-center w-12 ${stateClass}`;
       stepDiv.innerHTML = `
         <div class="stage-dot w-9 h-9 rounded-full border flex items-center justify-center text-sm shrink-0 transition-all ${dotClass}">
-          <span class="material-symbols-outlined text-xs">
-            ${isGrievance 
-              ? { 1: "assignment", 2: "person_search", 3: "verified_user", 4: "engineering", 5: "task_alt" }[num]
-              : { 1: "assignment", 2: "find_in_page", 3: "gavel", 4: "payments", 5: "task_alt" }[num]
-            }
-          </span>
+          <span class="material-symbols-outlined text-xs">${iconName}</span>
         </div>
         <span class="stage-label text-[10px] mt-2">${stageName}</span>
         <span class="stage-date text-[8px] opacity-75 mt-0.5">${dateText}</span>
@@ -1353,15 +1324,15 @@ function renderActiveServiceDetails() {
       pipelineStages.appendChild(stepDiv);
     }
   }
-  
-  // Fill progress line
+
+  // Progress bar fill
   const fill = document.getElementById("pipeline-progress-fill");
   if (fill) {
-    const percentageMap = { 1: 5, 2: 25, 3: 50, 4: 75, 5: 100 };
-    const fillVal = percentageMap[item.stage] || 5;
-    fill.style.width = `${fillVal}%`;
+    const pctMap = { 1: 5, 2: 25, 3: 50, 4: 75, 5: 100 };
+    fill.style.width = `${pctMap[item.stage] || 5}%`;
   }
 }
+
 
 function resetEvaluatorDisplay(service) {
   const percentageEl = document.getElementById("eligibility-percentage");
