@@ -873,7 +873,150 @@ function setupDirectorySwitcher() {
 
 // Top Navbar header trigger hooks
 function setupStaticNavBarLinks() {
-  // Navigation mapping is handled inside setupViewRouting()
+  setupNotificationsPanel();
+  setupSensorsPanel();
+}
+
+// ─── Notifications Bell ───────────────────────────────────────────────────────
+function setupNotificationsPanel() {
+  const btn = document.getElementById('btn-notifications');
+  if (!btn) return;
+
+  // Build the dropdown panel once and append to body
+  const panel = document.createElement('div');
+  panel.id = 'notifications-panel';
+  panel.className = 'hidden fixed top-20 right-6 z-[999] w-80 glass-panel rounded-xl border border-white/10 shadow-2xl overflow-hidden';
+  panel.innerHTML = `
+    <div class="flex items-center justify-between px-4 py-3 border-b border-white/5 bg-primary/5">
+      <div class="flex items-center gap-2 text-xs font-bold text-white">
+        <span class="material-symbols-outlined text-sm text-primary">notifications_active</span>
+        Government Alerts
+      </div>
+      <span class="px-2 py-0.5 rounded-full bg-error/20 text-error text-[9px] font-bold border border-error/20">3 New</span>
+    </div>
+    <div class="flex flex-col divide-y divide-white/5 max-h-72 overflow-y-auto custom-scrollbar">
+      ${[
+        { icon: 'campaign', color: 'text-amber-400', bg: 'bg-amber-500/10', title: 'PM-Kisan 17th Instalment', desc: 'Funds disbursed to 93M farmers. Check your bank account for ₹2,000 credit.', time: '2h ago', tag: 'Agriculture' },
+        { icon: 'health_and_safety', color: 'text-emerald-400', bg: 'bg-emerald-500/10', title: 'Ayushman Bharat Camp', desc: 'Free health screening camp at your nearest empanelled hospital this Saturday.', time: '5h ago', tag: 'Healthcare' },
+        { icon: 'gavel', color: 'text-primary', bg: 'bg-primary/10', title: 'Aadhaar Update Deadline', desc: 'UIDAI has extended free Aadhaar demographic update deadline to Dec 2025.', time: '1d ago', tag: 'Identification' }
+      ].map(n => `
+        <div class="flex gap-3 items-start px-4 py-3 hover:bg-white/5 transition-colors cursor-pointer">
+          <div class="w-8 h-8 rounded-lg ${n.bg} flex items-center justify-center shrink-0 mt-0.5">
+            <span class="material-symbols-outlined text-sm ${n.color}">${n.icon}</span>
+          </div>
+          <div class="flex-1 min-w-0">
+            <div class="flex justify-between items-center mb-0.5">
+              <span class="text-[10px] font-bold text-white truncate">${n.title}</span>
+              <span class="text-[8px] text-on-surface-variant ml-2 shrink-0">${n.time}</span>
+            </div>
+            <p class="text-[9px] text-on-surface-variant leading-relaxed">${n.desc}</p>
+            <span class="inline-block mt-1 px-1.5 py-0.5 rounded bg-white/5 text-[8px] text-on-surface-variant">${n.tag}</span>
+          </div>
+        </div>
+      `).join('')}
+    </div>
+    <div class="px-4 py-2.5 border-t border-white/5 bg-white/5">
+      <button class="text-[10px] text-primary hover:underline font-medium w-full text-center" id="mark-all-read-btn">Mark all as read</button>
+    </div>
+  `;
+  document.body.appendChild(panel);
+
+  // Badge dot on the bell
+  btn.style.position = 'relative';
+  const badge = document.createElement('span');
+  badge.id = 'notif-badge';
+  badge.className = 'absolute -top-1 -right-1 w-2 h-2 rounded-full bg-error border border-background';
+  btn.style.display = 'inline-flex';
+  btn.appendChild(badge);
+
+  btn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    sensorsPanel && sensorsPanel.classList.add('hidden');
+    panel.classList.toggle('hidden');
+  });
+
+  document.addEventListener('click', () => panel.classList.add('hidden'));
+  panel.addEventListener('click', e => e.stopPropagation());
+
+  const markAllBtn = document.getElementById('mark-all-read-btn');
+  if (markAllBtn) {
+    markAllBtn.addEventListener('click', () => {
+      badge.classList.add('hidden');
+      panel.classList.add('hidden');
+      showToast('All notifications marked as read.');
+    });
+  }
+}
+
+// ─── Live Sensor / System Status ─────────────────────────────────────────────
+let sensorsPanel = null;
+function setupSensorsPanel() {
+  const btn = document.getElementById('btn-sensors');
+  if (!btn) return;
+
+  sensorsPanel = document.createElement('div');
+  sensorsPanel.id = 'sensors-panel';
+  sensorsPanel.className = 'hidden fixed top-20 right-6 z-[999] w-80 glass-panel rounded-xl border border-white/10 shadow-2xl overflow-hidden';
+
+  const services = [
+    { name: 'Gemini AI Gateway',      status: 'Operational',  color: 'bg-emerald-400', ping: '42ms' },
+    { name: 'myScheme Portal',         status: 'Operational',  color: 'bg-emerald-400', ping: '81ms' },
+    { name: 'UIDAI Aadhaar API',       status: 'Operational',  color: 'bg-emerald-400', ping: '130ms' },
+    { name: 'Leaflet Maps CDN',        status: 'Operational',  color: 'bg-emerald-400', ping: '28ms' },
+    { name: 'Income Tax e-Filing',     status: 'Degraded',     color: 'bg-amber-400',   ping: '320ms' },
+    { name: 'PFMS DBT Gateway',        status: 'Operational',  color: 'bg-emerald-400', ping: '95ms' },
+  ];
+
+  sensorsPanel.innerHTML = `
+    <div class="flex items-center justify-between px-4 py-3 border-b border-white/5 bg-primary/5">
+      <div class="flex items-center gap-2 text-xs font-bold text-white">
+        <span class="material-symbols-outlined text-sm text-primary">sensors</span>
+        Live System Status
+      </div>
+      <span class="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 text-[9px] font-bold border border-emerald-500/20 flex items-center gap-1">
+        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse inline-block"></span>
+        5/6 Online
+      </span>
+    </div>
+    <div class="flex flex-col divide-y divide-white/5">
+      ${services.map(s => `
+        <div class="flex items-center gap-3 px-4 py-2.5 hover:bg-white/5 transition-colors">
+          <span class="w-2 h-2 rounded-full ${s.color} shrink-0 ${s.status === 'Operational' ? 'shadow-[0_0_6px_rgba(52,211,153,0.8)]' : 'shadow-[0_0_6px_rgba(251,191,36,0.8)]'}"></span>
+          <span class="flex-1 text-[10px] text-white font-medium">${s.name}</span>
+          <span class="text-[9px] ${s.status === 'Operational' ? 'text-emerald-400' : 'text-amber-400'} font-semibold">${s.status}</span>
+          <span class="text-[9px] text-on-surface-variant font-mono">${s.ping}</span>
+        </div>
+      `).join('')}
+    </div>
+    <div class="px-4 py-2.5 border-t border-white/5 bg-white/5 flex justify-between items-center">
+      <span class="text-[9px] text-on-surface-variant">Last checked: just now</span>
+      <button id="refresh-status-btn" class="text-[10px] text-primary hover:underline font-medium flex items-center gap-1">
+        <span class="material-symbols-outlined text-[11px]">refresh</span> Refresh
+      </button>
+    </div>
+  `;
+  document.body.appendChild(sensorsPanel);
+
+  btn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const notifPanel = document.getElementById('notifications-panel');
+    if (notifPanel) notifPanel.classList.add('hidden');
+    sensorsPanel.classList.toggle('hidden');
+  });
+
+  document.addEventListener('click', () => { if (sensorsPanel) sensorsPanel.classList.add('hidden'); });
+  sensorsPanel.addEventListener('click', e => e.stopPropagation());
+
+  const refreshBtn = document.getElementById('refresh-status-btn');
+  if (refreshBtn) {
+    refreshBtn.addEventListener('click', () => {
+      refreshBtn.innerHTML = `<span class="material-symbols-outlined text-[11px] animate-spin">sync</span> Checking...`;
+      setTimeout(() => {
+        refreshBtn.innerHTML = `<span class="material-symbols-outlined text-[11px]">refresh</span> Refresh`;
+        showToast('All system statuses refreshed!');
+      }, 1200);
+    });
+  }
 }
 
 // Search and Category filtering modules
