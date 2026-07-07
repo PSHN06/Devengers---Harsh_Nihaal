@@ -461,6 +461,7 @@ document.addEventListener("DOMContentLoaded", () => {
   setupStaticNavBarLinks();
   setupThemeToggle();
   setupViewRouting();
+  setupTextComplaintModal();
   setupFloatingChat();
   setupDeleteComplaintBtn();
   
@@ -617,6 +618,149 @@ function setupViewRouting() {
       selectService("pm-kisan");
       const evalBtn = document.getElementById("btn-tab-eligibility");
       if (evalBtn) evalBtn.click();
+    });
+  }
+}
+
+// Text-Based Complaint Submission Modal
+function setupTextComplaintModal() {
+  const submitBtn = document.getElementById("submit-text-complaint-btn");
+  const closeBtn = document.getElementById("close-text-complaint-modal");
+  const modal = document.getElementById("text-complaint-modal");
+  const submitComplaintBtn = document.getElementById("text-complaint-submit-btn");
+  const textArea = document.getElementById("text-complaint-textarea");
+  const locationInput = document.getElementById("text-complaint-location");
+  const categorySelect = document.getElementById("text-complaint-category");
+  
+  if (!modal) return;
+  
+  // Open modal
+  if (submitBtn) {
+    submitBtn.addEventListener("click", () => {
+      modal.classList.remove("hidden");
+      if (textArea) textArea.focus();
+    });
+  }
+  
+  // Close modal
+  if (closeBtn) {
+    closeBtn.addEventListener("click", () => {
+      modal.classList.add("hidden");
+    });
+  }
+  
+  modal.addEventListener("click", (e) => {
+    if (e.target === modal) {
+      modal.classList.add("hidden");
+    }
+  });
+  
+  // Submit complaint
+  if (submitComplaintBtn) {
+    submitComplaintBtn.addEventListener("click", () => {
+      const text = textArea ? textArea.value.trim() : "";
+      const location = locationInput ? locationInput.value.trim() : "";
+      const category = categorySelect ? categorySelect.value : "auto";
+      
+      if (!text) {
+        showToast("Please describe the issue before submitting.", true);
+        return;
+      }
+      if (!location) {
+        showToast("Please enter a location.", true);
+        return;
+      }
+      
+      submitComplaintBtn.disabled = true;
+      submitComplaintBtn.innerHTML = `<span class="material-symbols-outlined text-[14px] align-middle mr-1 animate-spin">sync</span> Processing...`;
+      showToast("Processing complaint and assigning to local agency...");
+      
+      setTimeout(() => {
+        // Auto-detect category if needed
+        let detectedCategory = category;
+        if (category === 'auto') {
+          const lower = text.toLowerCase();
+          if (lower.includes('street') || lower.includes('light') || lower.includes('lamp') || lower.includes('electric')) {
+            detectedCategory = 'Streetlight';
+          } else if (lower.includes('pothole') || lower.includes('road') || lower.includes('sadak')) {
+            detectedCategory = 'Roads';
+          } else if (lower.includes('garbage') || lower.includes('waste') || lower.includes('kachra')) {
+            detectedCategory = 'Waste';
+          } else if (lower.includes('sewage') || lower.includes('drain') || lower.includes('naali')) {
+            detectedCategory = 'Sewage';
+          } else if (lower.includes('water') || lower.includes('pani') || lower.includes('pipe')) {
+            detectedCategory = 'Water';
+          } else {
+            detectedCategory = 'General';
+          }
+        }
+        
+        const agencyName = getAgencyNameLocally(detectedCategory, location);
+        const geocode = `CIV-${Math.floor(1000 + Math.random() * 9000)}`;
+        const draft = generateDraftLocally(detectedCategory, location, text);
+        
+        // Get coordinates
+        const cityCoords = getCityCoords(location);
+        const latOffset = (Math.random() - 0.5) * 0.08;
+        const lngOffset = (Math.random() - 0.5) * 0.08;
+        const lat = (cityCoords.lat + latOffset).toFixed(6);
+        const lng = (cityCoords.lng + lngOffset).toFixed(6);
+        
+        // Create new grievance
+        const newId = `complaint-${Date.now()}`;
+        const newGrievance = {
+          id: newId,
+          name: text.length > 50 ? text.substring(0, 50) + "..." : text,
+          subtitle: text,
+          category: detectedCategory.toLowerCase(),
+          categoryDisplay: detectedCategory,
+          location: location,
+          agency: agencyName,
+          eta: "3-5 Business Days",
+          geocode: geocode,
+          lat: lat,
+          lng: lng,
+          stage: 2,
+          log: `Complaint submitted from Smart Bharat portal. Category: ${detectedCategory}. Agency: ${agencyName}.`,
+          draft: draft
+        };
+        
+        // Add to state
+        appState.grievances.unshift(newGrievance);
+        renderGrievancesDirectory();
+        
+        // Switch to complaints view
+        appState.activeView = 'complaints-view';
+        document.querySelectorAll(".view-frame").forEach(vf => {
+          vf.classList.toggle('hidden', vf.id !== 'complaints-view');
+        });
+        document.querySelectorAll(".nav-view-tab").forEach(t => {
+          if (t.getAttribute('data-view') === 'complaints-view') {
+            t.className = "text-primary font-bold border-b-2 border-primary pb-1 transition-all duration-300 nav-view-tab active";
+          } else {
+            t.className = "text-on-surface-variant font-medium hover:text-white transition-all duration-300 nav-view-tab";
+          }
+        });
+        
+        // Select new complaint
+        selectService(newId);
+        
+        // Init map
+        setTimeout(() => {
+          initLeafletMap(parseFloat(lat), parseFloat(lng));
+        }, 200);
+        
+        // Close and reset modal
+        modal.classList.add("hidden");
+        submitComplaintBtn.disabled = false;
+        submitComplaintBtn.innerHTML = `<span class="material-symbols-outlined text-[14px] align-middle mr-1">check_circle</span> Submit Complaint`;
+        showToast(`✓ Complaint registered! ID: ${geocode}`);
+        
+        // Clear fields
+        if (textArea) textArea.value = "";
+        if (locationInput) locationInput.value = "";
+        if (categorySelect) categorySelect.value = "auto";
+      }, 1200);
     });
   }
 }
