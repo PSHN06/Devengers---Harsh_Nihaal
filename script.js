@@ -465,6 +465,7 @@ document.addEventListener("DOMContentLoaded", () => {
   setupThemeToggle();
   setupViewRouting();
   setupFloatingChat();
+  setupDeleteComplaintBtn();
   
   // Render lists and select default card
   renderServicesDirectory();
@@ -867,6 +868,17 @@ function setupLanguageSelector() {
 // Sidebar Directory switcher (no-op – elements removed in new HTML)
 function setupDirectorySwitcher() {}
 
+// Wire workspace-level Delete button
+function setupDeleteComplaintBtn() {
+  const btn = document.getElementById("delete-complaint-btn");
+  if (!btn) return;
+  btn.addEventListener("click", () => {
+    if (appState.activeServiceId && appState.activeServiceId.startsWith("complaint-")) {
+      deleteGrievance(appState.activeServiceId);
+    }
+  });
+}
+
 // Top Navbar header trigger hooks
 function setupStaticNavBarLinks() {
   setupNotificationsPanel();
@@ -1099,32 +1111,132 @@ function renderGrievancesDirectory() {
   if (!container) return;
   
   container.innerHTML = "";
+
+  if (appState.grievances.length === 0) {
+    container.innerHTML = `
+      <div class="flex flex-col items-center justify-center py-10 text-center gap-2">
+        <span class="material-symbols-outlined text-3xl text-on-surface-variant/40">assignment_late</span>
+        <p class="text-[10px] text-on-surface-variant">No complaints lodged yet.</p>
+        <p class="text-[10px] text-on-surface-variant/60">Use "Lodge Voice Complaint" below.</p>
+      </div>
+    `;
+    return;
+  }
   
   appState.grievances.forEach(item => {
-    const card = document.createElement("button");
-    card.type = "button";
-    
+    const wrapper = document.createElement("div");
+    wrapper.className = "relative group";
+
     const isActive = appState.activeServiceId === item.id;
     const activeClass = isActive 
       ? "bg-primary/10 border-primary/30 text-primary" 
       : "bg-white/5 border-white/5 hover:bg-white/10 text-on-surface-variant";
     
-    card.className = `w-full text-left p-3 rounded-lg border transition-all text-xs flex flex-col gap-1.5 service-item-card ${activeClass}`;
+    const card = document.createElement("button");
+    card.type = "button";
+    card.className = `w-full text-left p-3 rounded-lg border transition-all text-xs flex flex-col gap-1.5 service-item-card ${activeClass} pr-8`;
     
     card.innerHTML = `
       <div class="flex justify-between items-center w-full">
         <span class="px-2 py-0.5 rounded text-[8px] font-bold uppercase tracking-wider bg-white/5 text-on-surface-variant">${escapeHTML(item.categoryDisplay)}</span>
-        <span class="text-[9px] opacity-75">${item.id.toUpperCase()}</span>
+        <span class="text-[9px] opacity-75">${item.geocode || item.id.toUpperCase()}</span>
       </div>
       <h4 class="font-bold text-white leading-tight truncate w-full">${escapeHTML(item.name)}</h4>
-      <p class="text-[10px] text-on-surface-variant truncate w-full">${escapeHTML(item.location)}</p>
+      <p class="text-[10px] text-on-surface-variant truncate w-full">${escapeHTML(item.location || "")}</p>
     `;
-    
-    card.addEventListener("click", () => {
-      selectService(item.id);
+    card.addEventListener("click", () => selectService(item.id));
+
+    // Small trash button overlaid top-right of each card
+    const trashBtn = document.createElement("button");
+    trashBtn.type = "button";
+    trashBtn.title = "Delete complaint";
+    trashBtn.className = "absolute top-2 right-2 w-6 h-6 rounded flex items-center justify-center text-on-surface-variant/40 hover:text-error hover:bg-error/10 transition-all opacity-0 group-hover:opacity-100";
+    trashBtn.innerHTML = `<span class="material-symbols-outlined text-[13px]">delete</span>`;
+    trashBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      deleteGrievance(item.id);
     });
-    
-    container.appendChild(card);
+
+    wrapper.appendChild(card);
+    wrapper.appendChild(trashBtn);
+    container.appendChild(wrapper);
+  });
+}
+
+// ── Delete a grievance with confirmation ─────────────────────────────────────
+function deleteGrievance(id) {
+  const item = appState.grievances.find(g => g.id === id);
+  if (!item) return;
+
+  // Build a lightweight in-page confirmation dialog
+  const overlay = document.createElement("div");
+  overlay.id = "delete-confirm-overlay";
+  overlay.className = "fixed inset-0 z-[9999] flex items-center justify-center bg-black/70 backdrop-blur-sm";
+  overlay.innerHTML = `
+    <div class="glass-panel border border-error/20 rounded-2xl p-6 w-80 shadow-2xl flex flex-col gap-4 animate-[fadeIn_0.2s_ease]">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-full bg-error/15 border border-error/20 flex items-center justify-center shrink-0">
+          <span class="material-symbols-outlined text-error">delete_forever</span>
+        </div>
+        <div>
+          <h4 class="text-sm font-bold text-white">Delete Complaint?</h4>
+          <p class="text-[10px] text-on-surface-variant mt-0.5">This action cannot be undone.</p>
+        </div>
+      </div>
+      <div class="bg-white/5 border border-white/5 rounded-lg px-3 py-2">
+        <p class="text-[10px] text-on-surface font-medium leading-relaxed truncate" title="${escapeHTML(item.name)}">${escapeHTML(item.name)}</p>
+        <p class="text-[9px] text-on-surface-variant mt-0.5">${escapeHTML(item.geocode || id)}</p>
+      </div>
+      <div class="flex gap-2 justify-end">
+        <button id="delete-cancel-btn" class="px-4 py-1.5 rounded-lg bg-white/5 border border-white/10 text-white text-[10px] font-semibold hover:bg-white/10 transition-all">
+          Cancel
+        </button>
+        <button id="delete-confirm-btn" class="px-4 py-1.5 rounded-lg bg-error/20 border border-error/30 text-error text-[10px] font-bold hover:bg-error/30 transition-all flex items-center gap-1">
+          <span class="material-symbols-outlined text-[12px]">delete</span> Delete
+        </button>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(overlay);
+
+  // Cancel
+  document.getElementById("delete-cancel-btn").addEventListener("click", () => {
+    overlay.remove();
+  });
+  overlay.addEventListener("click", (e) => {
+    if (e.target === overlay) overlay.remove();
+  });
+
+  // Confirm delete
+  document.getElementById("delete-confirm-btn").addEventListener("click", () => {
+    overlay.remove();
+
+    // Remove from state
+    appState.grievances = appState.grievances.filter(g => g.id !== id);
+
+    // Destroy Leaflet map if it was showing
+    if (appState.leafletMap) {
+      appState.leafletMap.remove();
+      appState.leafletMap = null;
+    }
+
+    // Re-render sidebar
+    renderGrievancesDirectory();
+
+    // Show empty state or select next complaint
+    const content = document.getElementById("grievance-workspace-content");
+    const empty   = document.getElementById("grievance-workspace-empty");
+
+    if (appState.grievances.length > 0) {
+      selectService(appState.grievances[0].id);
+    } else {
+      appState.activeServiceId = null;
+      if (content) content.classList.add("hidden");
+      if (empty)   empty.classList.remove("hidden");
+    }
+
+    showToast("Complaint deleted successfully.");
   });
 }
 
