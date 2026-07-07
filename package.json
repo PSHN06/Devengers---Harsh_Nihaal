@@ -1,0 +1,26 @@
+{
+  "name": "smart-bharat",
+  "version": "1.0.0",
+  "description": "AI-Powered Civic Companion for Indian Citizens",
+  "main": "script.js",
+  "type": "module",
+  "scripts": {
+    "test": "node test.js",
+    "start": "python -m http.server 8000",
+    "dev": "python -m http.server 8000"
+  },
+  "keywords": [
+    "civic",
+    "government",
+    "india",
+    "schemes",
+    "complaints",
+    "grievance"
+  ],
+  "author": "Devengers Team",
+  "license": "MIT",
+  "devDependencies": {},
+  "engines": {
+    "node": ">=14.0.0"
+  }
+}
