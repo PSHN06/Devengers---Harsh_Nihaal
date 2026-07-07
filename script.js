@@ -32,8 +32,6 @@ let appState = {
   activeServiceId: 'pm-kisan',
   searchQuery: '',
   activeCategory: 'all',
-  isRecording: false,
-  recordingTimeout: null,
   
   // Real Leaflet Map instances
   leafletMap: null,
@@ -458,7 +456,6 @@ document.addEventListener("DOMContentLoaded", () => {
   setupDocumentOCRScanner();
   setupSchemeEligibility();
   setupChatCompanion();
-  setupVoiceModalRecorder();
   setupLetterControls();
   setupDirectorySwitcher();
   setupStaticNavBarLinks();
