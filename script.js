@@ -1,7 +1,4 @@
-// Smart Bharat AI Civic Companion - Complete Frontend Logic
-// Handled defensively with full transitions, real Leaflet maps, and 6 welfare schemes.
-
-// Localized UI text mappings
+/**\n * Smart Bharat - AI-Powered Civic Companion\n * @module SmartBharatFrontend\n * @description Main application logic for government services directory, grievance tracking, and AI-powered assistance\n * @version 1.0.0\n * @author Devengers Team\n * \n * @features\n * - 7 government schemes with eligibility evaluation\n * - Text-based complaint submission with geocoding\n * - Interactive Leaflet.js map for complaint location tracking\n * - Floating AI chat assistant with Gemini API integration\n * - Multi-language support (7 languages: EN, HI, TA, TE, MR, BN, KN)\n * - Dark/Light theme toggle\n * - Responsive design with accessibility features\n * - XSS protection and input sanitization\n * \n * @requires Leaflet.js (map functionality)\n * @requires Material Design Symbols (icons)\n * @requires Google Gemini 3.5 Flash API (AI features)\n */\n\n/**\n * ============================================================================\n * LOCALIZATION MODULE\n * ============================================================================\n * Supports 7 Indian languages with UI text translations\n */\n\n// Localized UI text mappings
 const LOCALIZATIONS = {
   en: {
     tagline: "AI-Powered Civic Companion",
@@ -23,7 +20,7 @@ const LOCALIZATIONS = {
   }
 };
 
-// Global App State Store
+/**\n * ============================================================================\n * STATE MANAGEMENT MODULE\n * ============================================================================\n * Global application state object managing all UI and data states\n */\n\n// Global App State Store
 let appState = {
   currentLanguage: 'en',
   activeTab: 'guide',
@@ -448,8 +445,7 @@ Citizen Portal Grievance`
   ]
 };
 
-// Start UI Logic binding
-document.addEventListener("DOMContentLoaded", () => {
+/**\n * ============================================================================\n * APPLICATION INITIALIZATION\n * ============================================================================\n * Main entry point - initializes all modules when DOM is ready\n */\n\n// Start UI Logic binding\ndocument.addEventListener(\"DOMContentLoaded\", () => {
   setupTabs();
   setupLanguageSelector();
   setupServicesSearch();
@@ -472,6 +468,13 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 // Toast notification module (Sanitized XSS mitigation)
+/**
+ * Display a toast notification message
+ * @param {string} message - The message text to display
+ * @param {boolean} [isError=false] - Whether this is an error notification
+ * @description Shows a temporary notification at the bottom of the screen with auto-dismiss after 3.5 seconds
+ * @returns {void}
+ */
 function showToast(message, isError = false) {
   const container = document.getElementById("toast-container");
   if (!container) return;
@@ -500,7 +503,10 @@ function showToast(message, isError = false) {
   }, 3500);
 }
 
-// Theme Toggle Integration (Dark / Light switcher)
+/**\n * ============================================================================\n * CORE UI SETUP MODULE\n * ============================================================================\n * Initializes theme toggle, view routing, modals, and navigation components\n */\n\n/**\n * Initialize dark/light theme toggle functionality
+ * @description Sets up theme switcher button and applies saved theme preference from localStorage
+ * @returns {void}
+ */
 function setupThemeToggle() {
   const toggleBtn = document.getElementById("theme-toggle-btn");
   if (!toggleBtn) return;
@@ -540,6 +546,11 @@ function setupThemeToggle() {
 }
 
 // Main View Routing Controller
+/**
+ * Initialize view routing system for navigation between app sections
+ * @description Sets up click handlers for view tabs (Home, Services, Complaints, Resources)
+ * @returns {void}
+ */
 function setupViewRouting() {
   const tabs = document.querySelectorAll(".nav-view-tab");
   
@@ -622,7 +633,11 @@ function setupViewRouting() {
   }
 }
 
-// Text-Based Complaint Submission Modal
+/**
+ * Initialize text-based complaint submission modal
+ * @description Sets up form validation, submission handler, and grievance creation for text complaints
+ * @returns {void}
+ */
 function setupTextComplaintModal() {
   const submitBtn = document.getElementById("submit-text-complaint-btn");
   const closeBtn = document.getElementById("close-text-complaint-modal");
@@ -765,7 +780,11 @@ function setupTextComplaintModal() {
   }
 }
 
-// Floating Expandable Chat Assistant Widget
+/**
+ * Initialize floating AI chat assistant widget
+ * @description Sets up expandable chat window with message history and Gemini API integration
+ * @returns {void}
+ */
 function setupFloatingChat() {
   const triggerBtn = document.getElementById("trigger-floating-chat-btn");
   const closeBtn = document.getElementById("close-floating-chat-btn");
@@ -879,6 +898,12 @@ function setupFloatingChat() {
   });
 }
 
+/**
+ * Append a message to floating chat history
+ * @param {string} role - Message sender ('user' or 'assistant')
+ * @param {string} text - Message content
+ * @returns {void}
+ */
 function appendFloatingMessage(role, text) {
   const history = document.getElementById("floating-chat-history");
   if (!history) return null;
@@ -906,6 +931,13 @@ function appendFloatingMessage(role, text) {
 }
 
 // Leaflet.js Mapping Initializer Node
+/**
+ * Initialize Leaflet.js interactive map at specified coordinates
+ * @param {number|string} lat - Latitude coordinate
+ * @param {number|string} lng - Longitude coordinate
+ * @description Creates or updates map with marker at given location
+ * @returns {void}
+ */
 function initLeafletMap(lat, lng) {
   const container = document.getElementById("mock-map-canvas");
   if (!container) return;
@@ -947,6 +979,11 @@ function initLeafletMap(lat, lng) {
 }
 
 // Workspace Tab Navigation
+/**
+ * Setup tab navigation for service details (Guidelines, Eligibility, Pre-Audit, Letter)
+ * @description Binds click handlers to tab buttons for switching between content sections
+ * @returns {void}
+ */
 function setupTabs() {
   const triggers = document.querySelectorAll(".tab-trigger");
   triggers.forEach(trigger => {
@@ -974,6 +1011,11 @@ function setupTabs() {
 }
 
 // Language selector module
+/**
+ * Initialize language selection dropdown
+ * @description Sets up language selector to switch UI text between 7 supported languages
+ * @returns {void}
+ */
 function setupLanguageSelector() {
   const selector = document.getElementById("ui-lang-select");
   if (!selector) return;
@@ -1010,6 +1052,11 @@ function setupLanguageSelector() {
 function setupDirectorySwitcher() {}
 
 // Wire workspace-level Delete button
+/**
+ * Setup delete button for removing grievances
+ * @description Adds click handler to delete selected complaint from grievances list
+ * @returns {void}
+ */
 function setupDeleteComplaintBtn() {
   const btn = document.getElementById("delete-complaint-btn");
   if (!btn) return;
@@ -1021,12 +1068,22 @@ function setupDeleteComplaintBtn() {
 }
 
 // Top Navbar header trigger hooks
+/**
+ * Initialize navigation bar static links
+ * @description Sets up navbar branding and helper links
+ * @returns {void}
+ */
 function setupStaticNavBarLinks() {
   setupNotificationsPanel();
   setupSensorsPanel();
 }
 
 // ─── Notifications Bell ───────────────────────────────────────────────────────
+/**
+ * Initialize notifications panel display
+ * @description Shows system status notifications and alerts
+ * @returns {void}
+ */
 function setupNotificationsPanel() {
   const btn = document.getElementById('btn-notifications');
   if (!btn) return;
@@ -1099,6 +1156,11 @@ function setupNotificationsPanel() {
 
 // ─── Live Sensor / System Status ─────────────────────────────────────────────
 let sensorsPanel = null;
+/**
+ * Initialize system sensors/status panel
+ * @description Displays real-time system status and health indicators
+ * @returns {void}
+ */
 function setupSensorsPanel() {
   const btn = document.getElementById('btn-sensors');
   if (!btn) return;
@@ -1169,6 +1231,11 @@ function setupSensorsPanel() {
 }
 
 // Search and Category filtering modules
+/**
+ * Initialize services directory search functionality
+ * @description Sets up search input and filtering for government schemes
+ * @returns {void}
+ */
 function setupServicesSearch() {
   const searchInput = document.getElementById("services-search-input");
   const categoryChips = document.querySelectorAll(".category-chip");
@@ -1197,6 +1264,11 @@ function setupServicesSearch() {
 }
 
 // Render dynamic directory cards (Services)
+/**
+ * Render the services directory UI from appState.services
+ * @description Displays all available government schemes in directory list
+ * @returns {void}
+ */
 function renderServicesDirectory() {
   const container = document.getElementById("services-list-container");
   if (!container) return;
@@ -1247,6 +1319,11 @@ function renderServicesDirectory() {
 }
 
 // Render dynamic directory cards (Grievances)
+/**
+ * Render the grievances directory UI from appState.grievances
+ * @description Displays all submitted complaints in directory list with status indicators
+ * @returns {void}
+ */
 function renderGrievancesDirectory() {
   const container = document.getElementById("grievances-list-container");
   if (!container) return;
@@ -1305,6 +1382,12 @@ function renderGrievancesDirectory() {
 }
 
 // ── Delete a grievance with confirmation ─────────────────────────────────────
+/**
+ * Delete a grievance from the list
+ * @param {string} id - Grievance ID to delete
+ * @description Removes complaint from appState and updates UI
+ * @returns {void}
+ */
 function deleteGrievance(id) {
   const item = appState.grievances.find(g => g.id === id);
   if (!item) return;
@@ -1382,6 +1465,12 @@ function deleteGrievance(id) {
 }
 
 // Router select details visual swapper
+/**
+ * Select a service/scheme for detailed view
+ * @param {string} serviceId - The ID of the service to select
+ * @description Updates active service and re-renders detail view
+ * @returns {void}
+ */
 function selectService(serviceId) {
   appState.activeServiceId = serviceId;
   
@@ -1413,6 +1502,11 @@ function selectService(serviceId) {
 }
 
 // Render dynamic elements to pane components
+/**
+ * Render detailed view of the active selected service
+ * @description Displays guidelines, eligibility info, OCR scanner, and letter draft for selected scheme
+ * @returns {void}
+ */
 function renderActiveServiceDetails() {
   const isGrievance = appState.activeServiceId.startsWith("complaint-");
   const pool = isGrievance ? appState.grievances : appState.services;
@@ -1587,6 +1681,12 @@ function renderActiveServiceDetails() {
 }
 
 
+/**
+ * Reset eligibility evaluator display form
+ * @param {Object} service - The service/scheme object
+ * @description Clears evaluation results and resets input fields to defaults
+ * @returns {void}
+ */
 function resetEvaluatorDisplay(service) {
   const percentageEl = document.getElementById("eligibility-percentage");
   const textEl = document.getElementById("probability-text");
@@ -1618,6 +1718,12 @@ function resetEvaluatorDisplay(service) {
   }
 }
 
+/**
+ * Reset OCR document scanner display
+ * @param {Object} service - The service/scheme object
+ * @description Clears OCR results and resets form state
+ * @returns {void}
+ */
 function resetOCRScannerDisplay(service) {
   const box = document.getElementById("ocr-results-box");
   const prompt = document.getElementById("dropzone-prompt");
@@ -1637,6 +1743,11 @@ function resetOCRScannerDisplay(service) {
 }
 
 // Document OCR pre-screener (With Real Dropzone upload triggers)
+/**
+ * Initialize document OCR pre-audit scanner
+ * @description Sets up document validation checklist and scanning interface
+ * @returns {void}
+ */
 function setupDocumentOCRScanner() {
   const simAadhaar = document.getElementById("sim-aadhaar-btn");
   const simPan = document.getElementById("sim-pan-btn");
@@ -1741,6 +1852,11 @@ function setupDocumentOCRScanner() {
 }
 
 // Scheme Eligibility Calculations (Supports all 6 schemes dynamically)
+/**
+ * Initialize scheme eligibility evaluator
+ * @description Sets up form inputs and Gemini API call for scheme eligibility assessment
+ * @returns {void}
+ */
 function setupSchemeEligibility() {
   const btn = document.getElementById("check-eligibility-btn");
   if (!btn) return;
@@ -1941,6 +2057,12 @@ function setupSchemeEligibility() {
   });
 }
 
+/**
+ * Render eligibility evaluation results from Gemini API
+ * @param {Object} data - Eligibility assessment data from API
+ * @description Displays approval percentage, probability, and document requirements
+ * @returns {void}
+ */
 function renderSchemeEligibilityResults(data) {
   const percentageEl = document.getElementById("eligibility-percentage");
   const textEl = document.getElementById("probability-text");
@@ -2004,6 +2126,11 @@ function renderSchemeEligibilityResults(data) {
 }
 
 // Letter controls (Copy and View Translation)
+/**
+ * Initialize official letter display and controls
+ * @description Sets up letter translation, display, and copy-to-clipboard functionality
+ * @returns {void}
+ */
 function setupLetterControls() {
   const copy = document.getElementById("copy-draft-btn");
   const trans = document.getElementById("translate-draft-btn");
@@ -2162,11 +2289,15 @@ function setupLetterControls() {
   }
 }
 
-// Conversational AI Copilot Companion
-function setupChatCompanion() {
+/**\n * ============================================================================\n * AI & CHAT MODULE\n * ============================================================================\n * AI-powered chat assistant with fallback responses\n */\n\n// Conversational AI Copilot Companion\nfunction setupChatCompanion() {
   // Configured inside setupFloatingChat() to run dynamically inside the expandable widget panel
 }
 
+/**
+ * Generate fallback chat response when API unavailable
+ * @param {string} q - User query/question
+ * @returns {string} - HTML-formatted fallback response
+ */
 function generateChatFallback(q) {
   const text = q.toLowerCase();
   if (text.includes("aadhaar") && text.includes("address")) {
@@ -2427,7 +2558,10 @@ function setupVoiceModalRecorder() {
   });
 }
 
-// City coordinate lookup for real Leaflet map placement
+/**\n * ============================================================================\n * UTILITY & HELPER FUNCTIONS MODULE\n * ============================================================================\n * Pure utility functions for geocoding, agency mapping, and text processing\n */\n\n// City coordinate lookup for real Leaflet map placement\n/**\n * Get geographic coordinates for Indian city/location
+ * @param {string} location - City or location name
+ * @returns {Object} - { lat, lng } coordinates, defaults to Delhi if not found
+ */
 function getCityCoords(location) {
   const lower = location.toLowerCase();
   if (lower.includes('delhi') || lower.includes('dwarka') || lower.includes('noida') || lower.includes('gurgaon')) return { lat: 28.6139, lng: 77.2090 };
@@ -2444,6 +2578,12 @@ function getCityCoords(location) {
 }
 
 // Local Fallbacks
+/**
+ * Map complaint category and location to responsible government agency
+ * @param {string} category - Complaint category (Streetlight, Roads, Waste, Sewage, Water, General)
+ * @param {string} location - Location/city name
+ * @returns {string} - Agency name with department division
+ */
 function getAgencyNameLocally(category, location) {
   const lower = location.toLowerCase();
   let city = "Municipal Council";
@@ -2468,6 +2608,13 @@ function getAgencyNameLocally(category, location) {
 }
 
 // Local Document Draft compiles
+/**
+ * Generate formal administrative representation letter draft
+ * @param {string} category - Complaint category
+ * @param {string} location - Location of issue
+ * @param {string} transcript - Complaint description
+ * @returns {string} - Formal letter in administrative format
+ */
 function generateDraftLocally(category, location, transcript) {
   return `To,
 The Executive Engineer (Infrastructure Development),
@@ -2485,6 +2632,11 @@ Citizen Portal Grievance`;
 }
 
 // XSS Mitigation Security Utility
+/**
+ * Escape HTML special characters to prevent XSS attacks
+ * @param {string} str - Input string to escape
+ * @returns {string} - HTML-escaped string safe for DOM injection
+ */
 function escapeHTML(str) {
   return str.replace(/[&<>'"]/g, 
     tag => ({
